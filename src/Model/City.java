@@ -8,6 +8,7 @@ package Model;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.HashMap;
 
 /**
  *
@@ -58,6 +59,59 @@ public class City {
         this.createdBy = creatorName;
         this.lastUpdate = updateDate;
         this.lastUpdateBy = updatorName;
+    }
+    
+    // TODO: This method needs to move to the AppointmentDatabase class.
+    public static City addCityToDB(String name, Country country) throws Exception {
+        HashMap<String, String> filterData = new HashMap<>();
+        filterData.put(CITY_NAME, name);
+        filterData.put(COUNTRY_ID, country.getCountryId() + "");
+        if(DBQuery.recordExistsInDatabase(TABLE_NAME, filterData) != -1) {
+            throw new Exception("This city already exists in the database.");
+        }
+        
+        String userName = AppointmentDatabase.getInstance().getUserName();
+        HashMap<String, String> data = new HashMap<>();
+        data.put(CITY_NAME, "'" + name + "'");
+        data.put(COUNTRY_ID, "'" + country.getCountryId() + "'");
+        data.put(CREATE_DATE, "NOW()");
+        data.put(CREATED_BY, "'" + userName + "'");
+        data.put(LAST_UPDATE, "NOW()");
+        data.put(LAST_UPDATE_BY, "'" + userName + "'");
+        int newId = DBQuery.insertRowIntoDatabase(TABLE_NAME, data, CITY_ID);
+        
+        if(newId == -1) { return null; }
+
+        String[] colNamesToRetrieve = { "*" };
+        HashMap<String, Object> dataMap = DBQuery.getHashMapFromResultSetRow(
+                DBQuery.getResultSetForFilteredSelectStatement(
+                colNamesToRetrieve, TABLE_NAME, CITY_ID + "=" + newId));
+        return createCityInstanceFromHashMap(dataMap);
+    }
+    
+    private static City createCityInstanceFromHashMap(HashMap<String, Object> data) 
+            throws Exception {
+        if(data.containsKey(CITY_ID) && data.get(CITY_ID) instanceof Integer
+                && data.containsKey(CITY_NAME) && data.get(CITY_NAME) instanceof String
+                && data.containsKey(COUNTRY_ID) && data.get(COUNTRY_ID) instanceof Integer
+                && data.containsKey(CREATE_DATE) && data.get(CREATE_DATE) instanceof Timestamp
+                && data.containsKey(CREATED_BY) && data.get(CREATED_BY) instanceof String
+                && data.containsKey(LAST_UPDATE) && data.get(LAST_UPDATE) instanceof Timestamp
+                && data.containsKey(LAST_UPDATE_BY) && data.get(LAST_UPDATE_BY) instanceof String) {
+            
+            int id = (Integer)data.get(CITY_ID);
+            String name = (String)data.get(CITY_NAME);
+            int countryId = (Integer)data.get(COUNTRY_ID);
+            Country country = AppointmentDatabase.getInstance().getCountryWithId(countryId);
+            Timestamp createDate = (Timestamp)data.get(CREATE_DATE);
+            String createdBy = (String)data.get(CREATED_BY);
+            Timestamp lastUpdate = (Timestamp)data.get(LAST_UPDATE);
+            String lastUpdateBy = (String)data.get(LAST_UPDATE_BY);
+            
+            return new City(id, name, country, createDate, createdBy, lastUpdate, lastUpdateBy);
+        }
+        
+        throw new Exception("Error reading from array created from ResultSet row.");
     }
     
     /***************************************************************************

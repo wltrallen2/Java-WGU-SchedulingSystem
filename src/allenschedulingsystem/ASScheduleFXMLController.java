@@ -1,11 +1,11 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * This program was developed as part of the course requirements
+ * for the Software II - Advanced Java Concepts course 
+ * (C192) at Western Governor's University for student Walter Allen, 
+ * candidate for a B. S. in Software Development, graduation June 2020.
  */
 package allenschedulingsystem;
 
-import Model.AppointmentDatabase;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -40,10 +40,25 @@ public class ASScheduleFXMLController implements Initializable {
         // TODO
     }    
         
+    /**
+     * Exits the application when the exit button is pressed.
+     * 
+     * @param event the ActionEvent that triggers the method; in this case, the
+     * user clicking the "Exit" button.
+     */
     @FXML private void exitButtonPressed (ActionEvent event) {
         Platform.exit();
     }
     
+    /**
+     * Segues to a new fxml scene based on the source of the ActionEvent that has
+     * been triggered. The method will currently segue to an instance of the
+     * ASCustomerFXML scene when the user clicks the "View Customer Database" button.
+     * 
+     * @param event the ActionEvent that triggers the segue; in this case, the
+     * user clicking the "View Customer Database" button.
+     * @throws IOException 
+     */
     @FXML private void segueToNewScene (ActionEvent event) throws IOException {
         String filename = "";
         if(event.getSource().equals(viewCustomerDBButton)) {

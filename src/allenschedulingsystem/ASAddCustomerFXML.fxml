@@ -11,8 +11,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx" fx:controller="allenschedulingsystem.ASAddCustomerFXMLController">
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="allenschedulingsystem.ASAddCustomerFXMLController">
    <children>
       <Button fx:id="saveButton" layoutX="538.0" layoutY="313.0" mnemonicParsing="false" onAction="#segueToNewScene" prefWidth="150.0" text="Save" AnchorPane.bottomAnchor="55.0" AnchorPane.rightAnchor="14.0" />
       <Button fx:id="cancelButton" layoutX="538.0" layoutY="359.0" mnemonicParsing="false" onAction="#segueToNewScene" prefWidth="150.0" text="Cancel" AnchorPane.bottomAnchor="20.0" AnchorPane.rightAnchor="14.0" />
@@ -60,7 +59,6 @@
                </GridPane.margin>
             </TextField>
             <Label text="City:" textAlignment="RIGHT" GridPane.rowIndex="3" />
-            <Label text="Country:" textAlignment="RIGHT" GridPane.rowIndex="4" />
             <Label text="Postal Code:" textAlignment="RIGHT" GridPane.rowIndex="5" />
             <TextField fx:id="postalCodeTextField" GridPane.columnIndex="1" GridPane.rowIndex="5">
                <GridPane.margin>
@@ -74,6 +72,7 @@
                </GridPane.margin>
             </TextField>
             <ComboBox fx:id="cityComboBox" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <Label text="Country:" textAlignment="RIGHT" GridPane.rowIndex="4" />
             <ComboBox fx:id="countryComboBox" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
          </children>
       </GridPane>

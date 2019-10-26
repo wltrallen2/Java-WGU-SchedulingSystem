@@ -1,7 +1,8 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * This program was developed as part of the course requirements
+ * for the Software II - Advanced Java Concepts course 
+ * (C192) at Western Governor's University for student Walter Allen, 
+ * candidate for a B. S. in Software Development, graduation June 2020.
  */
 package allenschedulingsystem;
 
@@ -13,10 +14,6 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -31,10 +28,10 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import javafx.util.StringConverter;
 
 /**
- * FXML Controller class
+ * FXML Controller class that allows the user to add a customer or modify a
+ * customer's information.
  *
  * @author walterallen
  */
@@ -53,14 +50,26 @@ public class ASAddCustomerFXMLController implements Initializable {
     @FXML private ComboBox countryComboBox;
     
     /**
-     * Initializes the controller class.
+     * Initializes the controller class, setting the selection itesm for the
+     * city and country combo boxes.
+     * 
+     * @param url The location used to resolve relative paths for the root object, or null if the location is not known.
+     * @param rb The resources used to localize the root object, or null if the root object was not localized. 
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        setComboBoxItemsForCountries();
         setComboBoxItemsForCities();
-    }    
+        setComboBoxItemsForCountries();
+    }
     
+    /**
+     * Segues to the Customer Database scene (ASCustomerFXML) when the user clicks
+     * the "Save" or "Cancel" buttons.
+     * 
+     * @param event the ActionEvent that triggers the method; in this case, the
+     * user clicking the "Save" or "Cancel" button.
+     * @throws IOException 
+     */    
     @FXML private void segueToNewScene (ActionEvent event) throws IOException {
         String filename = "ASCustomerFXML.fxml";
         
@@ -74,104 +83,79 @@ public class ASAddCustomerFXMLController implements Initializable {
         stage.setScene(scene);
         stage.show();
     }
-
+    
+    /**
+     * Saves the customer information to the database, either overwriting the
+     * customer if the user chose to modify an existing customer, or adding the
+     * customer if the user chose to add a new customer. The implementation calls
+     * the saveCustomer method in the AppointmentDatabase class instance, which
+     * verifies the uniqueness of the customer, address, city, and/or country.
+     * Any instances which are not unique are not overwritten unless the information
+     * has been altered in some way.
+     */
     private void saveCustomerInformation() {
         String name = nameTextField.getText();
         String address1 = address1TextField.getText();
         String address2 = address2TextField.getText();
-        //City city = (City)cityComboBox.getSelectionModel().getSelectedItem();
-        //Country country = (Country)countryComboBox.getSelectionModel().getSelectedItem();
+        City city = (City)cityComboBox.getValue();
+        Country country = (Country)countryComboBox.getValue();
         String postalCode = postalCodeTextField.getText();
         String phone = phoneTextField.getText();
         
-        // TODO
+        // TODO: Finish implementation by calling saveCustomer in AppointmentDatabase.
     }
-    
+        
+    /**
+     * Set the selection items for the countries combo box, setting the cell factory
+     * return values to the name of the country.
+     */
     private void setComboBoxItemsForCountries() {
-                try {
+        try {
             HashMap<Integer, Country> countries;
             countries = AppointmentDatabase.getInstance().getCountries();
-            ObservableList<Country> countryList;
-            countryList = FXCollections.observableArrayList(countries.values());
-            countryList.sort(
-                    (c1, c2) -> c1.getCountryName().compareTo(c2.getCountryName()));
-                        
-            Callback<ListView<Country>, ListCell<Country>> cellFactory = list -> {
+            
+            Callback<ListView<Country>, ListCell<Country>> cellFactory = (list -> {
                 return new ListCell<Country>() {
                     @Override
                     protected void updateItem(Country item, boolean empty) {
                         super.updateItem(item, empty);
-                        setText(item == null ? "" : item.getCountryName());
+                        setText(item != null ? item.getCountryName() : "");
                     }
                 };
-            };
+            });
             
-            countryComboBox.setItems(countryList);
+            countryComboBox.getItems().setAll(countries.values());
+            countryComboBox.setButtonCell(cellFactory.call(null));
             countryComboBox.setCellFactory(cellFactory);
-            //countryComboBox.setButtonCell(cellFactory.call(null));
-            countryComboBox.setEditable(true);
-            countryComboBox.setConverter(new CountryStringConverter());
-        } catch (SQLException ex) {
+        } catch(SQLException ex) {
             System.out.println(ex);
         }
     }
     
+    /**
+     * Sets the selection items for the city combo box, setting the return value
+     * for the cell factory to the name of the city.
+     */
     private void setComboBoxItemsForCities() {
         try {
             HashMap<Integer, City> cities;
             cities = AppointmentDatabase.getInstance().getCities();
             
-            Callback<ListView<City>, ListCell<City>> cellFactory = list -> {
+            Callback<ListView<City>, ListCell<City>> cellFactory = (list -> {
                 return new ListCell<City>() {
                     @Override
                     protected void updateItem(City item, boolean empty) {
-                        super.updateItem(item, empty);
-                        setText(item == null ? "" : item.getCityName());
+                        super.updateItem(item, empty);                        
+                        setText(item != null ? item.getCityName() : "");
                     }
                 };
-            };
+            });
             
-            cityComboBox.getItems().addAll(cities.values());
+            cityComboBox.getItems().setAll(cities.values());
+            cityComboBox.setButtonCell(cellFactory.call(null));
             cityComboBox.setCellFactory(cellFactory);
-            cityComboBox.setEditable(true);
-            //cityComboBox.setButtonCell(cellFactory.call(null));
         } catch (SQLException ex) {
             System.out.println(ex);
-        }
-    }
-    
-    class CountryStringConverter extends StringConverter<Country> {
-
-        @Override
-        public String toString(Country object) {
-            String name = "";
-            if(object != null) { name = object.getCountryName(); }
-            return name;
-        }
-
-        @Override
-        public Country fromString(String string) {
-            try {
-                int rowNum = AppointmentDatabase.getInstance()
-                        .rowExistsInDatabase(Country.TABLE_NAME, Country.COUNTRY_NAME, string);
-                if(rowNum == -1) {
-                    return Country.addCountryToDB(string);
-                } else {
-                    HashMap<Integer, Country> countries;
-                    countries = AppointmentDatabase.getInstance().getCountries();
-                    for(Country country : countries.values()) {
-                        if(country.getCountryName().equals(string)) {
-                            return country;
-                        }
-                    }
-                }
-            } catch(SQLException ex){
-                System.out.println(ex);
-            } catch (Exception ex) {
-                System.out.println(ex);
-            }
-
-            return null;
         }
     }
 }

@@ -192,19 +192,25 @@ public class Country {
     
     public static Country addCountryToDB(String name)
             throws Exception {
-        if(AppointmentDatabase.getInstance().rowExistsInDatabase(TABLE_NAME, COUNTRY_NAME, name) != -1) {
+        HashMap<String, String> filterData = new HashMap<>();
+        filterData.put(Country.COUNTRY_NAME, name);
+        if(DBQuery.recordExistsInDatabase(Country.TABLE_NAME, filterData) != -1) {
             throw new Exception("This country name already exists in the database.");
         }
         
         String userName = AppointmentDatabase.getInstance().getUserName();
-        String[] columnNames = { COUNTRY_NAME, CREATE_DATE, CREATED_BY, LAST_UPDATE, LAST_UPDATE_BY };
-        String[] values = { "'" + name + "'", "NOW()", "'" + userName + "'", "NOW()", "'" + userName + "'" };
-        int newId = DBQuery.insertRowIntoDatabase(TABLE_NAME, columnNames, values, COUNTRY_ID);
+        HashMap<String, String> data = new HashMap<>();
+        data.put(COUNTRY_NAME, "'" + name + "'");
+        data.put(CREATE_DATE, "NOW()");
+        data.put(CREATED_BY, "'" + userName + "'");
+        data.put(LAST_UPDATE, "NOW()");
+        data.put(LAST_UPDATE_BY, "'" + userName + "'");
+        int newId = DBQuery.insertRowIntoDatabase(TABLE_NAME, data, COUNTRY_ID);
         
         if(newId == -1) { return null; }
         
         String[] colNamesToRetrieve = { "*" };
-        HashMap<String, Object> dataMap = DBQuery.getArrayFromResultSetRow(
+        HashMap<String, Object> dataMap = DBQuery.getHashMapFromResultSetRow(
                 DBQuery.getResultSetForFilteredSelectStatement
                 (colNamesToRetrieve, TABLE_NAME, COUNTRY_ID + "=" + newId));
         return createCountryInstanceFromHashMap(dataMap);
@@ -219,7 +225,7 @@ public class Country {
                 && data.containsKey(LAST_UPDATE) && data.get(LAST_UPDATE) instanceof Timestamp
                 && data.containsKey(LAST_UPDATE_BY) && data.get(LAST_UPDATE_BY) instanceof String) {
             
-            int id = ((Integer)data.get(COUNTRY_ID)).intValue();
+            int id = (Integer)data.get(COUNTRY_ID);
             String name = (String)data.get(COUNTRY_NAME);
             Timestamp createDate = (Timestamp)data.get(CREATE_DATE);
             String createdBy = (String)data.get(CREATED_BY);
