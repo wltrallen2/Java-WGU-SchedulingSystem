@@ -127,7 +127,7 @@ public class ASAddCustomerFXMLController implements Initializable {
             countryComboBox.getItems().setAll(countries.values());
             countryComboBox.setButtonCell(cellFactory.call(null));
             countryComboBox.setCellFactory(cellFactory);
-        } catch(SQLException ex) {
+        } catch(Exception ex) {
             System.out.println(ex);
         }
     }
@@ -154,7 +154,7 @@ public class ASAddCustomerFXMLController implements Initializable {
             cityComboBox.getItems().setAll(cities.values());
             cityComboBox.setButtonCell(cellFactory.call(null));
             cityComboBox.setCellFactory(cellFactory);
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             System.out.println(ex);
         }
     }

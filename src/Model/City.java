@@ -60,36 +60,20 @@ public class City {
         this.lastUpdate = updateDate;
         this.lastUpdateBy = updatorName;
     }
-    
-    // TODO: This method needs to move to the AppointmentDatabase class.
-    public static City addCityToDB(String name, Country country) throws Exception {
-        HashMap<String, String> filterData = new HashMap<>();
-        filterData.put(CITY_NAME, name);
-        filterData.put(COUNTRY_ID, country.getCountryId() + "");
-        if(DBQuery.recordExistsInDatabase(TABLE_NAME, filterData) != -1) {
-            throw new Exception("This city already exists in the database.");
-        }
-        
-        String userName = AppointmentDatabase.getInstance().getUserName();
-        HashMap<String, String> data = new HashMap<>();
-        data.put(CITY_NAME, "'" + name + "'");
-        data.put(COUNTRY_ID, "'" + country.getCountryId() + "'");
-        data.put(CREATE_DATE, "NOW()");
-        data.put(CREATED_BY, "'" + userName + "'");
-        data.put(LAST_UPDATE, "NOW()");
-        data.put(LAST_UPDATE_BY, "'" + userName + "'");
-        int newId = DBQuery.insertRowIntoDatabase(TABLE_NAME, data, CITY_ID);
-        
-        if(newId == -1) { return null; }
 
-        String[] colNamesToRetrieve = { "*" };
-        HashMap<String, Object> dataMap = DBQuery.getHashMapFromResultSetRow(
-                DBQuery.getResultSetForFilteredSelectStatement(
-                colNamesToRetrieve, TABLE_NAME, CITY_ID + "=" + newId));
-        return createCityInstanceFromHashMap(dataMap);
-    }
-    
-    private static City createCityInstanceFromHashMap(HashMap<String, Object> data) 
+    /** Creates and returns an instance of a City object based on the paired values
+     * in a HashMap, where the key is a String representing the names of variables
+     * of a City object and the values are the values to be assigned to those variables.
+     * 
+     * @param data a HashMap<String, Object> representing the data to be used, where
+     * the keys are the names of the variables in a City object, and the values are
+     * Object instances representing the values to be passed. If the values are not
+     * instances of the correct type, the data will not be accepted and an exception
+     * will be thrown.
+     * @return a City instance that contains the data that was passed into the method.
+     * @throws Exception 
+     */    
+    public static City createCityInstanceFromHashMap(HashMap<String, Object> data) 
             throws Exception {
         if(data.containsKey(CITY_ID) && data.get(CITY_ID) instanceof Integer
                 && data.containsKey(CITY_NAME) && data.get(CITY_NAME) instanceof String

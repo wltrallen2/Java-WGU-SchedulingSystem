@@ -80,7 +80,7 @@ public class DBQuery {
         return success;
     }
     
-        /**
+    /**
      * Updates a single int value in one matching record in the database.
      * The record is identified using a WHERE clause in the SQL query, in which
      * the value in the primaryKeyColumnName matches the passed primaryKeyValue.
@@ -282,7 +282,7 @@ public class DBQuery {
         return getResultSetForFilteredOrderedSelectStatement(columnNames, tableName, "", "");
     }
     
-        /**
+    /**
      * Allows the user to query a database table and retrieve a all rows, ordered
      * in ascending order.
      * 
