@@ -8,23 +8,24 @@ package Model;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.HashMap;
 
 /**
  *
  * @author walterallen
  */
 public class Address {
-    private final String TABLE_NAME = "address";
-    private final String ADDRESS_ID = "addressid";
-    private final String ADDRESS_LINE1 = "address";
-    private final String ADDRESS_LINE2 = "address2";
-    private final String CITY_ID = "cityId";
-    private final String POSTAL_CODE = "postalCode";
-    private final String PHONE = "phone";
-    private final String CREATE_DATE = "createDate";
-    private final String CREATED_BY = "createdBy";
-    private final String LAST_UPDATE = "lastUpdate";
-    private final String LAST_UPDATE_BY = "lastUpdateBy";
+    public static final String TABLE_NAME = "address";
+    public static final String ADDRESS_ID = "addressId";
+    public static final String ADDRESS_LINE1 = "address";
+    public static final String ADDRESS_LINE2 = "address2";
+    public static final String CITY_ID = "cityId";
+    public static final String POSTAL_CODE = "postalCode";
+    public static final String PHONE = "phone";
+    public static final String CREATE_DATE = "createDate";
+    public static final String CREATED_BY = "createdBy";
+    public static final String LAST_UPDATE = "lastUpdate";
+    public static final String LAST_UPDATE_BY = "lastUpdateBy";
     
     private int addressId;
     private String address;
@@ -58,7 +59,7 @@ public class Address {
      * @param updatorName - a String representing the name of the database user
      * who last updated the record.
      */
-    public void init (int id, String address1, String address2, City city, 
+    public Address (int id, String address1, String address2, City city, 
             String postalCode, String phoneNumber,
             Timestamp createDate, String creatorName, 
             Timestamp updateDate, String updatorName) {
@@ -73,6 +74,60 @@ public class Address {
         this.lastUpdate = updateDate;
         this.lastUpdateBy = updatorName;
     }
+    
+    /**
+     * Creates and returns an instance of an Address object based on the paired values
+     * in a HashMap, where the key is a String representing the names of variables
+     * of a Address object and the values are the values to be assigned to those variables.
+     * 
+     * @param data a HashMap<String, Object> representing the data to be used, where
+     * the keys are the names of the variables in an Address object, and the values are
+     * Object instances representing the values to be passed. If the values are not
+     * instances of the correct type, the data will not be accepted and an exception
+     * will be thrown.
+     * @return an Address instance that contains the data that was passed into the method.
+     * @throws Exception 
+     */
+    public static Address createAddressInstanceFromHashMap(HashMap<String, Object> data) 
+            throws Exception {
+        if(data.containsKey(ADDRESS_ID) && data.get(ADDRESS_ID) instanceof Integer
+                && data.containsKey(ADDRESS_LINE1) && data.get(ADDRESS_LINE1) instanceof String
+                && data.containsKey(ADDRESS_LINE2) && data.get(ADDRESS_LINE2) instanceof String
+                && data.containsKey(CITY_ID) && data.get(CITY_ID) instanceof Integer
+                && data.containsKey(POSTAL_CODE) && data.get(POSTAL_CODE) + "" instanceof String
+                && data.containsKey(PHONE) && data.get(PHONE) + "" instanceof String
+                && data.containsKey(CREATE_DATE) && data.get(CREATE_DATE) instanceof Timestamp
+                && data.containsKey(CREATED_BY) && data.get(CREATED_BY) instanceof String
+                && data.containsKey(LAST_UPDATE) && data.get(LAST_UPDATE) instanceof Timestamp
+                && data.containsKey(LAST_UPDATE_BY) && data.get(LAST_UPDATE_BY) instanceof String) {
+            
+            int id = (Integer)data.get(ADDRESS_ID);
+            String address1 = (String)data.get(ADDRESS_LINE1);
+            String address2 = (String)data.get(ADDRESS_LINE2);
+            int cityId = (Integer)data.get(CITY_ID);
+            City city = AppointmentDatabase.getInstance().getCityWithId(cityId);
+            String zip = "" + (String)data.get(POSTAL_CODE);
+            String phone = "" + (String)data.get(PHONE);
+            Timestamp createDate = (Timestamp)data.get(CREATE_DATE);
+            String createdBy = (String)data.get(CREATED_BY);
+            Timestamp lastUpdate = (Timestamp)data.get(LAST_UPDATE);
+            String lastUpdateBy = (String)data.get(LAST_UPDATE_BY);
+            
+            return new Address(id, address1, address2, city, zip, phone,
+                    createDate, createdBy, lastUpdate, lastUpdateBy);
+                
+        }
+        
+        throw new Exception("Error reading from array created from ResultSet row.");
+    }
+    
+    @Override
+    public String toString() {
+        return address + "\n" + address2 + "\n" + city.getCityName() + ", "
+                + city.getCountry().getCountryName() + " " + postalCode
+                + "\n" + phone;
+    }
+
     
     /***************************************************************************
      * SETTERS
@@ -299,4 +354,5 @@ public class Address {
     public Timestamp getLastUpdate() {
         return lastUpdate;
     }    
+    
 }

@@ -6,6 +6,7 @@
  */
 package allenschedulingsystem;
 
+import Model.Address;
 import Model.AppointmentDatabase;
 import Model.City;
 import Model.Country;
@@ -109,14 +110,18 @@ public class ASAddCustomerFXMLController implements Initializable {
         String cityName = (String)cityComboBox.getSelectionModel().getSelectedItem();
         City city = AppointmentDatabase.getInstance().getCityFromDB(cityName, country);
         
-        String name = nameTextField.getText();
         String address1 = address1TextField.getText();
         String address2 = address2TextField.getText();
         String postalCode = postalCodeTextField.getText();
         String phone = phoneTextField.getText();
+        Address address = AppointmentDatabase.getInstance()
+                .getAddressFromDb(address1, address2, city, postalCode, phone);
         
-        System.out.println(country.getCountryName());
-        System.out.println(city.getCityName());
+        String name = nameTextField.getText();
+
+        
+        System.out.println(address.getAddressId());
+        System.out.println(address);
         
         // TODO: Finish implementation by calling saveCustomer in AppointmentDatabase.
     }

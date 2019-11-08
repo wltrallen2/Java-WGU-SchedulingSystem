@@ -41,7 +41,7 @@ public class AppointmentDatabase {
         
         countries = pullCountriesFromDB();
         cities = pullCitiesFromDB();
-        // TODO: pullAddressesFromDB();
+        addresses = pullAddressesFromDB();
         // TODO: pullCustomersFromDB();
     }
     
@@ -132,6 +132,7 @@ public class AppointmentDatabase {
      * objects in the database.
      */
     public HashMap<Integer, Address> getAddresses() {
+        // TODO: Finish implementation to update lastUpdate value
         return addresses;
     }
     
@@ -142,6 +143,7 @@ public class AppointmentDatabase {
      * objects in the database.
      */
     public HashMap<Integer, Customer> getCustomers() {
+        // TODO: Finish implementation to update lastUpdate value
         return customers;
     }
     
@@ -163,6 +165,10 @@ public class AppointmentDatabase {
      */
     public City getCityWithId(int cityId) {
         return cities.get(cityId);
+    }
+    
+    public Address getAddressWithId(int addressId) {
+        return addresses.get(addressId);
     }
     
     /**
@@ -256,6 +262,46 @@ public class AppointmentDatabase {
         return map;
     }
     
+        /**
+     * Pulls the addresses from the Address table in the database and creates a
+     * HashMap that maps the addressIds to instances of Address objects representing
+     * each address.
+
+     * @return a HashMap mapping ints (representing address ids) to Address objects
+     * (representing each address in the database)
+     * @throws SQLException 
+     */
+    private HashMap<Integer, Address> pullAddressesFromDB() throws SQLException {
+        HashMap<Integer, Address> map = new HashMap<>();
+        String tableName = Address.TABLE_NAME;
+        String orderByColumnName = Address.POSTAL_CODE;
+        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
+
+        while(rs.next()) {
+            int id = rs.getInt(Address.ADDRESS_ID);
+            String address1 = rs.getString(Address.ADDRESS_LINE1);
+            String address2 = rs.getString(Address.ADDRESS_LINE2);
+            int cityId = rs.getInt(Address.CITY_ID);
+            String zip = rs.getString(Address.POSTAL_CODE);
+            String phone = rs.getString(Address.PHONE);
+            Timestamp createDate = rs.getTimestamp(City.CREATE_DATE);
+            String createdBy = rs.getString(City.CREATED_BY);
+            Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
+            String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
+            
+            if(lastUpdateToAddresses == null || !lastUpdate.equals(lastUpdateToAddresses)) {
+                lastUpdateToAddresses = lastUpdate;
+            }
+            
+            City city = cities.get(cityId);
+            map.put(id, new Address(id, address1, address2, city, zip, phone,
+                    createDate, createdBy, lastUpdate, lastUpdateBy));
+        }
+        
+        return map;
+    }
+
+    
     /**
      * Retrieves a country from the database if it already exists, OR adds the
      * country to the database if the country does not already exist and returns
@@ -299,6 +345,8 @@ public class AppointmentDatabase {
         Country newCountry = null;
         try {
          newCountry = Country.createCountryInstanceFromHashMap(dataMap);
+         countries.put(newId, newCountry);
+         lastUpdateToCountries = newCountry.getLastUpdate();
         } catch(Exception ex) {
             System.out.println("Exception in AppointmentDatabase getCountryFromDB method.");
             System.out.println(ex);
@@ -315,7 +363,6 @@ public class AppointmentDatabase {
      * @param name a String representing the name of the city to be added to the table
      * @param country a Country object representing the country in which the city resides
      * @return a City object representing the new city.
-     * @throws java.lang.Exception
      */
     public City getCityFromDB(String name, Country country) {
         HashMap<String, String> filterData = new HashMap<>();
@@ -346,6 +393,8 @@ public class AppointmentDatabase {
         City newCity = null;
         try {
             newCity = City.createCityInstanceFromHashMap(dataMap);
+            cities.put(newId, newCity);
+            lastUpdateToCities = newCity.getLastUpdate();
         } catch(Exception ex) {
             System.out.println("Exception in AppointmentDatabase getCityFromDb method");
             System.out.println(ex);
@@ -353,5 +402,52 @@ public class AppointmentDatabase {
         
         return newCity;
     }
+    
+    public Address getAddressFromDb(String address1, String address2, City city,
+            String zip, String phone) {
+        HashMap<String, String> filterData = new HashMap<>();
+        filterData.put(Address.ADDRESS_LINE1, address1);
+        filterData.put(Address.ADDRESS_LINE2, address2);
+        filterData.put(Address.CITY_ID, city.getCityId() + "");
+        filterData.put(Address.POSTAL_CODE, zip);
+        filterData.put(Address.PHONE, phone);
+        
+        int rowNum = DBQuery.recordExistsInDatabase(Address.TABLE_NAME, filterData);
+        if(rowNum != -1) {
+            return getAddressWithId(rowNum);
+        }
+        
+        HashMap<String, String> data = new HashMap<>();
+        data.put(Address.ADDRESS_LINE1, "'" + address1 + "'");
+        data.put(Address.ADDRESS_LINE2, "'" + address2 + "'");
+        data.put(Address.CITY_ID, "'" + city.getCityId() + "'");
+        data.put(Address.POSTAL_CODE, "'" + zip + "'");
+        data.put(Address.PHONE, "'" + phone + "'");
+        data.put(City.CREATE_DATE, "NOW()");
+        data.put(City.CREATED_BY, "'" + userName + "'");
+        data.put(City.LAST_UPDATE, "NOW()");
+        data.put(City.LAST_UPDATE_BY, "'" + userName + "'");
+        int newId = DBQuery.insertRowIntoDatabase(Address.TABLE_NAME, data, Address.ADDRESS_ID);
+        
+        if(newId == -1) { return null; }
+
+        String[] colNamesToRetrieve = { "*" };
+        HashMap<String, Object> dataMap = DBQuery.getHashMapFromResultSetRow(
+                DBQuery.getResultSetForFilteredSelectStatement(
+                colNamesToRetrieve, Address.TABLE_NAME, Address.ADDRESS_ID + "=" + newId));
+        
+        Address newAddress = null;
+        try {
+            newAddress = Address.createAddressInstanceFromHashMap(dataMap);
+            addresses.put(newId, newAddress);
+            lastUpdateToAddresses = newAddress.getLastUpdate();
+        } catch(Exception ex) {
+            System.out.println("Exception in AppointmentDatabase getAddressFromDb method");
+            System.out.println(ex);
+        }
+        
+        return newAddress;
+    }
+
 
 }
