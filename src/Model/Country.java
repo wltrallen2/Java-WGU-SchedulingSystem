@@ -190,32 +190,20 @@ public class Country {
         return lastUpdate;
     }
     
-    public static Country addCountryToDB(String name)
-            throws Exception {
-        HashMap<String, String> filterData = new HashMap<>();
-        filterData.put(Country.COUNTRY_NAME, name);
-        if(DBQuery.recordExistsInDatabase(Country.TABLE_NAME, filterData) != -1) {
-            throw new Exception("This country name already exists in the database.");
-        }
+    /***************************************************************************
+     * PUBLIC STATIC METHODS
+     **************************************************************************/
         
-        String userName = AppointmentDatabase.getInstance().getUserName();
-        HashMap<String, String> data = new HashMap<>();
-        data.put(COUNTRY_NAME, "'" + name + "'");
-        data.put(CREATE_DATE, "NOW()");
-        data.put(CREATED_BY, "'" + userName + "'");
-        data.put(LAST_UPDATE, "NOW()");
-        data.put(LAST_UPDATE_BY, "'" + userName + "'");
-        int newId = DBQuery.insertRowIntoDatabase(TABLE_NAME, data, COUNTRY_ID);
-        
-        if(newId == -1) { return null; }
-        
-        String[] colNamesToRetrieve = { "*" };
-        HashMap<String, Object> dataMap = DBQuery.getHashMapFromResultSetRow(
-                DBQuery.getResultSetForFilteredSelectStatement
-                (colNamesToRetrieve, TABLE_NAME, COUNTRY_ID + "=" + newId));
-        return createCountryInstanceFromHashMap(dataMap);
-    }
-    
+    /**
+     * Creates an instance of the Country class based on the key-value pairs where
+     * the keys are the variable names for an instance of the Country class, and the
+     * values are the values that are to be stored in those variable.
+     * @param data a HashMap<String, Object> where the Strings represent the variable
+     * names for an instance of the Country class, and the values are the values
+     * that are to be stored in those variables.
+     * @return a Country instance with all variables set to the passed-in data.
+     * @throws Exception 
+     */
     public static Country createCountryInstanceFromHashMap(HashMap<String, Object> data)
             throws Exception {
         if(data.containsKey(COUNTRY_ID) && data.get(COUNTRY_ID) instanceof Integer

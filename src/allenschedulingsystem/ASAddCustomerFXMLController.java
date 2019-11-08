@@ -11,9 +11,17 @@ import Model.City;
 import Model.Country;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.TreeSet;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -28,6 +36,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 
 /**
  * FXML Controller class that allows the user to add a customer or modify a
@@ -94,42 +103,36 @@ public class ASAddCustomerFXMLController implements Initializable {
      * has been altered in some way.
      */
     private void saveCustomerInformation() {
+        String countryName = (String)countryComboBox.getSelectionModel().getSelectedItem();
+        Country country = AppointmentDatabase.getInstance().getCountryFromDB(countryName);
+        
+        String cityName = (String)cityComboBox.getSelectionModel().getSelectedItem();
+        City city = AppointmentDatabase.getInstance().getCityFromDB(cityName, country);
+        
         String name = nameTextField.getText();
         String address1 = address1TextField.getText();
         String address2 = address2TextField.getText();
-        City city = (City)cityComboBox.getValue();
-        Country country = (Country)countryComboBox.getValue();
         String postalCode = postalCodeTextField.getText();
         String phone = phoneTextField.getText();
+        
+        System.out.println(country.getCountryName());
+        System.out.println(city.getCityName());
         
         // TODO: Finish implementation by calling saveCustomer in AppointmentDatabase.
     }
         
     /**
-     * Set the selection items for the countries combo box, setting the cell factory
-     * return values to the name of the country.
+     * Set the selection items for the countries combo box, using the unique set
+     * of country names in the Country table.
      */
     private void setComboBoxItemsForCountries() {
-        try {
-            HashMap<Integer, Country> countries;
-            countries = AppointmentDatabase.getInstance().getCountries();
-            
-            Callback<ListView<Country>, ListCell<Country>> cellFactory = (list -> {
-                return new ListCell<Country>() {
-                    @Override
-                    protected void updateItem(Country item, boolean empty) {
-                        super.updateItem(item, empty);
-                        setText(item != null ? item.getCountryName() : "");
-                    }
-                };
-            });
-            
-            countryComboBox.getItems().setAll(countries.values());
-            countryComboBox.setButtonCell(cellFactory.call(null));
-            countryComboBox.setCellFactory(cellFactory);
-        } catch(Exception ex) {
-            System.out.println(ex);
+        Collection<Country> countries = AppointmentDatabase.getInstance().getCountries().values();
+        TreeSet<String> countryNames = new TreeSet<>();
+        for(Country c : countries) {
+            countryNames.add(c.getCountryName());
         }
+        
+        countryComboBox.setItems(FXCollections.observableArrayList(countryNames));
     }
     
     /**
@@ -137,26 +140,13 @@ public class ASAddCustomerFXMLController implements Initializable {
      * for the cell factory to the name of the city.
      */
     private void setComboBoxItemsForCities() {
-        try {
-            HashMap<Integer, City> cities;
-            cities = AppointmentDatabase.getInstance().getCities();
-            
-            Callback<ListView<City>, ListCell<City>> cellFactory = (list -> {
-                return new ListCell<City>() {
-                    @Override
-                    protected void updateItem(City item, boolean empty) {
-                        super.updateItem(item, empty);                        
-                        setText(item != null ? item.getCityName() : "");
-                    }
-                };
-            });
-            
-            cityComboBox.getItems().setAll(cities.values());
-            cityComboBox.setButtonCell(cellFactory.call(null));
-            cityComboBox.setCellFactory(cellFactory);
-        } catch (Exception ex) {
-            System.out.println(ex);
+        Collection<City> cities = AppointmentDatabase.getInstance().getCities().values();
+        TreeSet<String> cityNames = new TreeSet<>();
+        for(City c : cities) {
+            cityNames.add(c.getCityName());
         }
+        
+        cityComboBox.setItems(FXCollections.observableArrayList(cityNames));
     }
 }
 

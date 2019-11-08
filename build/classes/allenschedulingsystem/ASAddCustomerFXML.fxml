@@ -71,9 +71,9 @@
                   <Insets left="10.0" right="10.0" />
                </GridPane.margin>
             </TextField>
-            <ComboBox fx:id="cityComboBox" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <ComboBox fx:id="cityComboBox" editable="true" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
             <Label text="Country:" textAlignment="RIGHT" GridPane.rowIndex="4" />
-            <ComboBox fx:id="countryComboBox" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <ComboBox fx:id="countryComboBox" editable="true" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
          </children>
       </GridPane>
    </children>

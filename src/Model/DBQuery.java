@@ -30,20 +30,23 @@ public class DBQuery {
      * @param username a String representing the username value in the database
      * @param password a String representing the user password value in the database
      * @return an int representing the userId or -1 if not found
-     * @throws SQLException 
      */
-    public static int fetchUserId(String username, String password) throws SQLException {
+    public static int fetchUserId(String username, String password) {
         int userId = -1;
         
         String query = "SELECT * FROM user WHERE username = ? AND password = ?";
-        
-        PreparedStatement prepstmt = DBConnection.conn.prepareStatement(query);
-        prepstmt.setString(1, username);
-        prepstmt.setString(2, password);
-        
-        ResultSet rs = prepstmt.executeQuery();
-        if(rs.next()) {
-            userId = rs.getInt("userId");
+        try {
+            PreparedStatement prepstmt = DBConnection.conn.prepareStatement(query);
+            prepstmt.setString(1, username);
+            prepstmt.setString(2, password);
+
+            ResultSet rs = prepstmt.executeQuery();
+            if(rs.next()) {
+                userId = rs.getInt("userId");
+            }
+        } catch(SQLException ex) {
+            System.out.println("SQLException in AppointmentDatabase fetchUserId method.");
+            System.out.println(ex);
         }
         
         return userId;
@@ -65,18 +68,23 @@ public class DBQuery {
      * 
      * @return true if the update was successful, false if the update was unsuccessful
      * 
-     * @throws SQLException 
      */
     public static boolean updateSingleValueInDatabase(String table, String columnName, String value,
-            String primaryKeyColumnName, int primaryKeyValue) throws SQLException {
+            String primaryKeyColumnName, int primaryKeyValue) {
         boolean success = false;
         
         String query = "UPDATE " + table + " SET " + columnName + "='?'" +
                 " WHERE " + primaryKeyColumnName + "=" + primaryKeyValue;
-        PreparedStatement prepstmt = DBConnection.conn.prepareStatement(query);
-        prepstmt.setString(1, value);
         
-        if(prepstmt.executeUpdate() > 0) { success = true; }
+        try {
+            PreparedStatement prepstmt = DBConnection.conn.prepareStatement(query);
+            prepstmt.setString(1, value);
+
+            if(prepstmt.executeUpdate() > 0) { success = true; }
+        } catch(SQLException ex) {
+            System.out.println("SQLException in AppointmentDatabase updateSingleValueInDatabase method");
+            System.out.println(ex);
+        }
         return success;
     }
     
@@ -96,18 +104,23 @@ public class DBQuery {
      * 
      * @return true if the update was successful, false if the update was unsuccessful
      * 
-     * @throws SQLException 
      */
     public static boolean updateSingleValueInDatabase(String table, String columnName, int value,
-            String primaryKeyColumnName, int primaryKeyValue) throws SQLException {
+            String primaryKeyColumnName, int primaryKeyValue) {
         boolean success = false;
         
         String query = "UPDATE " + table + " SET " + columnName + "='?'" +
                 " WHERE " + primaryKeyColumnName + "=" + primaryKeyValue;
-        PreparedStatement prepstmt = DBConnection.conn.prepareStatement(query);
-        prepstmt.setInt(1, value);
         
-        if(prepstmt.executeUpdate() > 0) { success = true; }
+        try {
+            PreparedStatement prepstmt = DBConnection.conn.prepareStatement(query);
+            prepstmt.setInt(1, value);
+
+            if(prepstmt.executeUpdate() > 0) { success = true; }
+        } catch(SQLException ex) {
+            System.out.println("SQLException in AppointmentDatabase in updateSingleValueInDatabase method.");
+            System.out.println(ex);
+        }
         return success;
     }
     
@@ -127,18 +140,24 @@ public class DBQuery {
      * 
      * @return true if the update was successful, false if the update was unsuccessful
      * 
-     * @throws SQLException 
      */
     public static boolean updateSingleValueInDatabase(String table, String columnName, Timestamp value,
-            String primaryKeyColumnName, int primaryKeyValue) throws SQLException {
+            String primaryKeyColumnName, int primaryKeyValue) {
         boolean success = false;
         
         String query = "UPDATE " + table + " SET " + columnName + "='?'" +
                 " WHERE " + primaryKeyColumnName + "=" + primaryKeyValue;
-        PreparedStatement prepstmt = DBConnection.conn.prepareStatement(query);
-        prepstmt.setTimestamp(1, value);
         
-        if(prepstmt.executeUpdate() > 0) { success = true; }
+        try {
+            PreparedStatement prepstmt = DBConnection.conn.prepareStatement(query);
+            prepstmt.setTimestamp(1, value);
+
+            if(prepstmt.executeUpdate() > 0) { success = true; }
+        } catch(SQLException ex) {
+            System.out.println("SQLException in AppointmentDatabase updateSingleValueInDatabase method.");
+            System.out.println(ex);
+        }
+        
         return success;
     }
     
@@ -154,17 +173,21 @@ public class DBQuery {
      * strings representing the values expected in the column.
      * @return an int representing the value stored in the first column of the table
      * row if it exists in the database, or -1 if the row does not exist.
-     * @throws SQLException 
      */
-    public static int recordExistsInDatabase(String tableName, HashMap<String, String> filterData)
-            throws SQLException {
+    public static int recordExistsInDatabase(String tableName, HashMap<String, String> filterData) {
         int rowNum = -1;
         
         String[] columnNamesToReturn = { "*" };
         String sqlFilter = implodeFilterData(filterData);
-        ResultSet rs = getResultSetForFilteredSelectStatement(columnNamesToReturn, tableName, sqlFilter);
         
-        if(rs.next()) { rowNum = rs.getInt(1); }
+        try {
+            ResultSet rs = getResultSetForFilteredSelectStatement(columnNamesToReturn, tableName, sqlFilter);
+
+            if(rs.next()) { rowNum = rs.getInt(1); }
+        } catch(SQLException ex) {
+            System.out.println("SQLException in AppointmentDatabase in recordExistsInDatabase method");
+            System.out.println(ex);
+        }
         
         return rowNum;
     }
@@ -181,21 +204,29 @@ public class DBQuery {
      * queried table.
      * @return an int representing the value stored in the primary key column after
      * the row has been inserted, or -1 if the insertion fails.
-     * @throws SQLException 
      */
     public static int insertRowIntoDatabase(String table, HashMap<String, String> data,
-            String keyColumn) throws SQLException {
+            String keyColumn) {
         int genKey = -1;
+       
+        // Implodes the column and value data into two separate strings, which
+        // is returned in a hashmap with the key values "columns" and "values".
+        HashMap<String, String> implodedData = implodeColumnValueData(data);
+        String query = "INSERT INTO " + table + " (" + implodedData.get("columns") 
+                + ") VALUES (" + implodedData.get("values") + ")";
         
-        String query = "INSERT INTO " + table + " (" + implodeStrings((String[])data.keySet().toArray(), ", ") 
-                + ") VALUES (" + implodeStrings((String[])data.values().toArray(), ", ") + ")";
-        Statement stmt = DBConnection.conn.createStatement();
-        
-        String[] keyColumns = { keyColumn };
-        stmt.executeUpdate(query, keyColumns);
-        ResultSet genKeys = stmt.getGeneratedKeys();
-        if(genKeys.next()) {
-            genKey = genKeys.getInt(1);
+        try {
+            Statement stmt = DBConnection.conn.createStatement();
+
+            String[] keyColumns = { keyColumn };
+            stmt.executeUpdate(query, keyColumns);
+            ResultSet genKeys = stmt.getGeneratedKeys();
+            if(genKeys.next()) {
+                genKey = genKeys.getInt(1);
+        }
+        } catch (SQLException ex) {
+            System.out.println("SQLException in ApointmentDatabase insertRowIntoDatabase method.");
+            System.out.println(ex);
         }
         
         return genKey;
@@ -213,12 +244,15 @@ public class DBQuery {
      * to the query
      * @param orderByColumnName a String representing the name column to use to order
      * the results
-     * @return the ResultSet from the executed query statement
-     * @throws SQLException 
+     * @return the ResultSet from the executed query statement, or null if there
+     * is an error in the sql statement.
      */
     public static ResultSet getResultSetForFilteredOrderedSelectStatement(
             String[] columnNames, String tableName, String sqlFilter,
-            String orderByColumnName) throws SQLException {
+            String orderByColumnName) {
+        
+        ResultSet rs = null;
+        
         String query = "SELECT " + implodeStrings(columnNames, ",") + " FROM " + tableName;
         
         if(!sqlFilter.equals("")) {
@@ -229,7 +263,14 @@ public class DBQuery {
             query += " ORDER BY " + orderByColumnName;
         }
         
-        return executeStatementFromQuery(query);
+        try {
+            rs = executeStatementFromQuery(query);
+        } catch(SQLException ex) {
+            System.out.println("SQLException in DBQuery executeStatementFromQuery method.");
+            System.out.println(ex);
+        }
+        
+        return rs;
     }
     
     /**
@@ -242,10 +283,9 @@ public class DBQuery {
      * @param orderByColumnName a String representing the name column to use to order
      * the results
      * @return the ResultSet from the executed query statement
-     * @throws SQLException 
      */
     public static ResultSet getResultSetForOrderedSelectStatement(String[] columnNames,
-            String tableName, String orderByColumnName) throws SQLException {
+            String tableName, String orderByColumnName) {
         return getResultSetForFilteredOrderedSelectStatement(columnNames,
                 tableName, "", orderByColumnName);
     }
@@ -260,10 +300,9 @@ public class DBQuery {
      * @param sqlFilter a String representing an sql formatted filter to be applied
      * to the query
      * @return the ResultSet from the executed query statement
-     * @throws SQLException 
      */
     public static ResultSet getResultSetForFilteredSelectStatement(String[] columnNames,
-            String tableName, String sqlFilter) throws SQLException {
+            String tableName, String sqlFilter) {
         return getResultSetForFilteredOrderedSelectStatement(columnNames,
                 tableName, sqlFilter, "");
     }
@@ -275,10 +314,9 @@ public class DBQuery {
      * to be returned
      * @param tableName a String representing the name of the table to be queried
      * @return the ResultSet from the executed query statement
-     * @throws SQLException 
      */
     public static ResultSet getResultSetForSelectStatement(String[] columnNames,
-            String tableName) throws SQLException {
+            String tableName) {
         return getResultSetForFilteredOrderedSelectStatement(columnNames, tableName, "", "");
     }
     
@@ -286,13 +324,12 @@ public class DBQuery {
      * Allows the user to query a database table and retrieve a all rows, ordered
      * in ascending order.
      * 
+     * @param tableName a String representing the name of the table to query
      * @param orderByColumn a String representing the name column to use to order
      * the results
      * @return the ResultSet from the executed query statement
-     * @throws SQLException 
      */
-    public static ResultSet getResultSetOfAllOrderedRows(String tableName, String orderByColumn)
-            throws SQLException {
+    public static ResultSet getResultSetOfAllOrderedRows(String tableName, String orderByColumn) {
         String[] columnNames = { "*" };
         return getResultSetForFilteredOrderedSelectStatement(columnNames, tableName, "", orderByColumn);
     }
@@ -305,17 +342,24 @@ public class DBQuery {
      * 
      * @param rs the ResultSet with data to be formatted into a HashMap<String, Object>
      * @return a HashMap<String, Object> representing the data in the ResultSet
-     * @throws SQLException
-     * @throws ClassNotFoundException 
      */
-    public static HashMap<String, Object> getHashMapFromResultSetRow(ResultSet rs) throws SQLException, ClassNotFoundException {
+    public static HashMap<String, Object> getHashMapFromResultSetRow(ResultSet rs) {
         HashMap<String, Object> rowData = new HashMap<>();
+        
+        try {
         if(rs.next()) {
             for(int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                 String colName = rs.getMetaData().getColumnLabel(i);
                 String colType = rs.getMetaData().getColumnClassName(i);
                 rowData.put(colName, rs.getObject(i, Class.forName(colType)));
             }
+        }
+        } catch(SQLException ex) {
+            System.out.println("SQLException in AppointmentDatabase getHashMapFromResultSetRow method.");
+            System.out.println(ex);
+        } catch(ClassNotFoundException ex) {
+            System.out.println("ClassNotFoundException in AppointmentDatabase getHashMapFromResultSetRow method.");
+            System.out.println(ex);
         }
         
         return rowData;
@@ -326,7 +370,7 @@ public class DBQuery {
      * 
      * @param query a String representing the query to be executed.
      * @return the ResultSet containing the results of the query.
-     * @throws SQLException 
+     * @throws SQLException
      */
     public static ResultSet executeStatementFromQuery(String query) throws SQLException {
         Statement stmt = DBConnection.conn.createStatement();
@@ -357,6 +401,42 @@ public class DBQuery {
     }
     
     /**
+     * Implodes a set of string to string maps into two separate strings, each
+     * delimited by a comma. The first set of strings (or keys in the original
+     * HashMap) represent the column names and the second set of strings represent
+     * the values to be inserted into those columns. The data is returned in a
+     * HashMap with the first set of strings mapped to the key "columns" and the
+     * second set mapped to the key "values."
+     * 
+     * @param data a HashMap<String, String> where the keys are String object
+     * representing the names of columns into which data is to be inserted and
+     * the values are String objects representing the data to be inserted into the
+     * respective columns.
+     * @return a HashMap<String, String> consisting of two key-value pairs: (1) for
+     * the key "columns", a String represnting a list of the columns into which data
+     * is to be inserted, and (2) for the key "values", a String representing the
+     * list of data to be inserted respectively.
+     */
+    private static HashMap<String, String> implodeColumnValueData(HashMap<String, String> data) {
+        HashMap<String, String> implodedData = new HashMap<>();
+        
+        ArrayList<String> keys = new ArrayList<>();
+        ArrayList<String> values = new ArrayList<>();
+        
+        for(String col : data.keySet()) {
+            keys.add(col);
+            values.add(data.get(col));
+        }
+        
+        String implodedKeys = implodeStrings(keys.toArray(new String[0]), ",");
+        String implodedValues = implodeStrings(values.toArray(new String[0]), ",");
+        
+        implodedData.put("columns", implodedKeys);
+        implodedData.put("values", implodedValues);
+        return implodedData;
+    }
+    
+    /**
      * Implodes the keys and values in a HashMap into a formatted list for filtering
      * a set of results from an sql query. For example, the map { "id" -> "2",
      * "name" -> "Joe" } would be imploded into the following format:
@@ -372,7 +452,7 @@ public class DBQuery {
         String filter = "";
         
         for(String columnName : data.keySet()) {
-            filter += columnName + "=" + data.get(columnName) + " AND ";
+            filter += columnName + "='" + data.get(columnName) + "' AND ";
         }
         int lastIndexOfAnd = filter.lastIndexOf(" AND ");
         filter = filter.substring(0, lastIndexOfAnd);
