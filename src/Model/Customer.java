@@ -8,21 +8,22 @@ package Model;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.HashMap;
 
 /**
  *
  * @author walterallen
  */
 public class Customer {
-    private final String TABLE_NAME = "customer";
-    private final String CUSTOMER_ID = "customerId";
-    private final String CUSTOMER_NAME = "cusomterName";
-    private final String ADDRESS_ID = "addressId";
-    private final String ACTIVE = "active";
-    private final String CREATE_DATE = "createDate";
-    private final String CREATED_BY = "createdBy";
-    private final String LAST_UPDATE = "lastUpdate";
-    private final String LAST_UPDATE_BY = "lastUpdateBy";
+    public static final String TABLE_NAME = "customer";
+    public static final String CUSTOMER_ID = "customerId";
+    public static final String CUSTOMER_NAME = "customerName";
+    public static final String ADDRESS_ID = "addressId";
+    public static final String ACTIVE = "active";
+    public static final String CREATE_DATE = "createDate";
+    public static final String CREATED_BY = "createdBy";
+    public static final String LAST_UPDATE = "lastUpdate";
+    public static final String LAST_UPDATE_BY = "lastUpdateBy";
     
     private int customerId;
     private String customerName;
@@ -52,7 +53,7 @@ public class Customer {
      * @param updatorName - a String representing the name of the database user
      * who last updated the record.
      */
-    public void init (int id, String name, Address address, Boolean active,
+    public Customer (int id, String name, Address address, Boolean active,
             Timestamp createDate, String creatorName, 
             Timestamp updateDate, String updatorName) {
         this.customerId = id;
@@ -63,6 +64,51 @@ public class Customer {
         this.createdBy = creatorName;
         this.lastUpdate = updateDate;
         this.lastUpdateBy = updatorName;
+    }
+    
+        /**
+     * Creates and returns an instance of a Customer object based on the paired values
+     * in a HashMap, where the key is a String representing the names of variables
+     * of a Customer object and the values are the values to be assigned to those variables.
+     * 
+     * @param data a HashMap<String, Object> representing the data to be used, where
+     * the keys are the names of the variables in a Customer object, and the values are
+     * Object instances representing the values to be passed. If the values are not
+     * instances of the correct type, the data will not be accepted and an exception
+     * will be thrown.
+     * @return a Customer instance that contains the data that was passed into the method.
+     * @throws Exception 
+     */
+    public static Customer createCustomerInstanceFromHashMap(HashMap<String, Object> data) 
+            throws Exception {
+        if(data.containsKey(CUSTOMER_ID) && data.get(CUSTOMER_ID) instanceof Integer
+                && data.containsKey(CUSTOMER_NAME) && data.get(CUSTOMER_NAME) instanceof String
+                && data.containsKey(ADDRESS_ID) && data.get(ADDRESS_ID) instanceof Integer
+                && data.containsKey(ACTIVE) && data.get(ACTIVE) instanceof Boolean
+                && data.containsKey(CREATE_DATE) && data.get(CREATE_DATE) instanceof Timestamp
+                && data.containsKey(CREATED_BY) && data.get(CREATED_BY) instanceof String
+                && data.containsKey(LAST_UPDATE) && data.get(LAST_UPDATE) instanceof Timestamp
+                && data.containsKey(LAST_UPDATE_BY) && data.get(LAST_UPDATE_BY) instanceof String) {
+            
+            int id = (Integer)data.get(CUSTOMER_ID);
+            String name = (String)data.get(CUSTOMER_NAME);
+            int address_id = (Integer)data.get(ADDRESS_ID);
+            Address address = AppointmentDatabase.getInstance().getAddressWithId(address_id);
+            Boolean active = (Boolean)data.get(ACTIVE);
+            Timestamp createDate = (Timestamp)data.get(CREATE_DATE);
+            String createdBy = (String)data.get(CREATED_BY);
+            Timestamp lastUpdate = (Timestamp)data.get(LAST_UPDATE);
+            String lastUpdateBy = (String)data.get(LAST_UPDATE_BY);
+            
+            return new Customer(id, name, address, active, createDate,
+                createdBy, lastUpdate, lastUpdateBy);
+        }
+        
+        throw new Exception("Error reading from array created from ResultSet row.");
+    }
+    
+    public String toString() {
+        return customerName + "\n" + address.toString();
     }
     
     /***************************************************************************

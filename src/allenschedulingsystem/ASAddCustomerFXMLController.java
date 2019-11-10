@@ -10,6 +10,7 @@ import Model.Address;
 import Model.AppointmentDatabase;
 import Model.City;
 import Model.Country;
+import Model.Customer;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
@@ -104,6 +105,9 @@ public class ASAddCustomerFXMLController implements Initializable {
      * has been altered in some way.
      */
     private void saveCustomerInformation() {
+        // TODO: Check to see if updating a customer's info. If so, save over instead
+        // of saving new.
+        
         String countryName = (String)countryComboBox.getSelectionModel().getSelectedItem();
         Country country = AppointmentDatabase.getInstance().getCountryFromDB(countryName);
         
@@ -118,12 +122,8 @@ public class ASAddCustomerFXMLController implements Initializable {
                 .getAddressFromDb(address1, address2, city, postalCode, phone);
         
         String name = nameTextField.getText();
-
-        
-        System.out.println(address.getAddressId());
-        System.out.println(address);
-        
-        // TODO: Finish implementation by calling saveCustomer in AppointmentDatabase.
+        Customer customer = AppointmentDatabase.getInstance()
+                .getCustomerFromDb(name, address, true);
     }
         
     /**

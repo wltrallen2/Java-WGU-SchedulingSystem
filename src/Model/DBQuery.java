@@ -21,6 +21,7 @@ import java.util.HashMap;
  * @author walterallen
  */
 public class DBQuery {
+    
     /**
      * Queries the company database to see if there is a matching user with the
      * given password. The method will return an int representing the userId
@@ -174,7 +175,7 @@ public class DBQuery {
      * @return an int representing the value stored in the first column of the table
      * row if it exists in the database, or -1 if the row does not exist.
      */
-    public static int recordExistsInDatabase(String tableName, HashMap<String, String> filterData) {
+    public static int recordExistsInDatabase(String tableName, HashMap<String, Object> filterData) {
         int rowNum = -1;
         
         String[] columnNamesToReturn = { "*" };
@@ -205,7 +206,7 @@ public class DBQuery {
      * @return an int representing the value stored in the primary key column after
      * the row has been inserted, or -1 if the insertion fails.
      */
-    public static int insertRowIntoDatabase(String table, HashMap<String, String> data,
+    public static int insertRowIntoDatabase(String table, HashMap<String, Object> data,
             String keyColumn) {
         int genKey = -1;
        
@@ -417,7 +418,7 @@ public class DBQuery {
      * is to be inserted, and (2) for the key "values", a String representing the
      * list of data to be inserted respectively.
      */
-    private static HashMap<String, String> implodeColumnValueData(HashMap<String, String> data) {
+    private static HashMap<String, String> implodeColumnValueData(HashMap<String, Object> data) {
         HashMap<String, String> implodedData = new HashMap<>();
         
         ArrayList<String> keys = new ArrayList<>();
@@ -425,7 +426,17 @@ public class DBQuery {
         
         for(String col : data.keySet()) {
             keys.add(col);
-            values.add(data.get(col));
+            
+            Object value = data.get(col);
+            if (value instanceof SQLCommand) {
+                values.add(((SQLCommand) value).command());
+            } else if (value instanceof String) {
+                values.add("'" + (String)value + "'");
+            } else if (value instanceof Boolean) {
+                values.add((Boolean)value ? "1" : "0");
+            } else {
+                values.add(value.toString());
+            }
         }
         
         String implodedKeys = implodeStrings(keys.toArray(new String[0]), ",");
@@ -448,12 +459,27 @@ public class DBQuery {
      * @return a String representing the HashMap data in a format suitable for a 
      * WHERE statement in an sql query.
      */
-    private static String implodeFilterData(HashMap<String, String> data) {
+    private static String implodeFilterData(HashMap<String, Object> data) {
         String filter = "";
         
         for(String columnName : data.keySet()) {
-            filter += columnName + "='" + data.get(columnName) + "' AND ";
+            filter += columnName + "=";
+
+            Object value = data.get(columnName);            
+            if (value instanceof SQLCommand) {
+                filter += ((SQLCommand) value).command();
+            } else if(value instanceof String) { 
+                filter += "'" + (String)value + "'"; 
+            } else if (value instanceof Boolean) {
+                filter += ((Boolean)value ? 1 : 0);
+            } else { 
+                filter += value.toString();
+            }
+            // TODO: Add if-else brance for a TimeStamp & investigate other needs.
+            
+            filter += " AND ";
         }
+        
         int lastIndexOfAnd = filter.lastIndexOf(" AND ");
         filter = filter.substring(0, lastIndexOfAnd);
         
