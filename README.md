@@ -1,7 +1,9 @@
 # Java-WGU-SchedulingSystem
 WORK IN PROGRESS - Java application developed as part of the requirements for Western Governor's University C192 - Advanced Java Concepts
 
-**CURRENT STATUS NOTE:** _*The Login scene is implemented. Use the username test and password test to login. Additionally, the Add/Modify Customer scene is designed, and on this page, the city and country comboboxes are populated. To get to the Add/Modify Customer scene, click on the "View Customer Database" button and then on the "Add/Modify Customer" button. All return, exit, and cancel buttons are also implemented.*_
+**CURRENT STATUS NOTE:** _*The Login scene is implemented. Use the username test and password test to login. Additionally, the Add/Modify Customer scene is designed and users are able to add new customers (including addresses, cities, and countries) to the database. To get to the Add/Modify Customer scene, click on the "View Customer Database" button and then on the "Add/Modify Customer" button. All return, exit, and cancel buttons are also implemented.*_
+
+**NEXT STEPS:** _*The Customer Database scene will be populated with a list of customer names and a user will be able to choose a customer to modify or delete.*_
 
 For this project, the student is required to implement the following requirements:
 
