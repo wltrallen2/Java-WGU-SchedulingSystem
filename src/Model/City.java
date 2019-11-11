@@ -60,43 +60,6 @@ public class City {
         this.lastUpdate = updateDate;
         this.lastUpdateBy = updatorName;
     }
-
-    /** Creates and returns an instance of a City object based on the paired values
-     * in a HashMap, where the key is a String representing the names of variables
-     * of a City object and the values are the values to be assigned to those variables.
-     * 
-     * @param data a HashMap<String, Object> representing the data to be used, where
-     * the keys are the names of the variables in a City object, and the values are
-     * Object instances representing the values to be passed. If the values are not
-     * instances of the correct type, the data will not be accepted and an exception
-     * will be thrown.
-     * @return a City instance that contains the data that was passed into the method.
-     * @throws Exception 
-     */    
-    public static City createCityInstanceFromHashMap(HashMap<String, Object> data) 
-            throws Exception {
-        if(data.containsKey(CITY_ID) && data.get(CITY_ID) instanceof Integer
-                && data.containsKey(CITY_NAME) && data.get(CITY_NAME) instanceof String
-                && data.containsKey(COUNTRY_ID) && data.get(COUNTRY_ID) instanceof Integer
-                && data.containsKey(CREATE_DATE) && data.get(CREATE_DATE) instanceof Timestamp
-                && data.containsKey(CREATED_BY) && data.get(CREATED_BY) instanceof String
-                && data.containsKey(LAST_UPDATE) && data.get(LAST_UPDATE) instanceof Timestamp
-                && data.containsKey(LAST_UPDATE_BY) && data.get(LAST_UPDATE_BY) instanceof String) {
-            
-            int id = (Integer)data.get(CITY_ID);
-            String name = (String)data.get(CITY_NAME);
-            int countryId = (Integer)data.get(COUNTRY_ID);
-            Country country = AppointmentDatabase.getInstance().getCountryWithId(countryId);
-            Timestamp createDate = (Timestamp)data.get(CREATE_DATE);
-            String createdBy = (String)data.get(CREATED_BY);
-            Timestamp lastUpdate = (Timestamp)data.get(LAST_UPDATE);
-            String lastUpdateBy = (String)data.get(LAST_UPDATE_BY);
-            
-            return new City(id, name, country, createDate, createdBy, lastUpdate, lastUpdateBy);
-        }
-        
-        throw new Exception("Error reading from array created from ResultSet row.");
-    }
     
     /***************************************************************************
      * SETTERS
@@ -255,5 +218,46 @@ public class City {
      */
     public Timestamp getLastUpdate() {
         return lastUpdate;
-    }    
+    }
+    
+    /***************************************************************************
+     * PUBLIC STATIC METHODS
+     **************************************************************************/
+        
+    /** Creates and returns an instance of a City object based on the paired values
+     * in a HashMap, where the key is a String representing the names of variables
+     * of a City object and the values are the values to be assigned to those variables.
+     * 
+     * @param data a HashMap<String, Object> representing the data to be used, where
+     * the keys are the names of the variables in a City object, and the values are
+     * Object instances representing the values to be passed. If the values are not
+     * instances of the correct type, the data will not be accepted and an exception
+     * will be thrown.
+     * @return a City instance that contains the data that was passed into the method.
+     * @throws Exception 
+     */    
+    public static City createCityInstanceFromHashMap(HashMap<String, Object> data) 
+            throws Exception {
+        if(data.containsKey(CITY_ID) && data.get(CITY_ID) instanceof Integer
+                && data.containsKey(CITY_NAME) && data.get(CITY_NAME) instanceof String
+                && data.containsKey(COUNTRY_ID) && data.get(COUNTRY_ID) instanceof Integer
+                && data.containsKey(CREATE_DATE) && data.get(CREATE_DATE) instanceof Timestamp
+                && data.containsKey(CREATED_BY) && data.get(CREATED_BY) instanceof String
+                && data.containsKey(LAST_UPDATE) && data.get(LAST_UPDATE) instanceof Timestamp
+                && data.containsKey(LAST_UPDATE_BY) && data.get(LAST_UPDATE_BY) instanceof String) {
+            
+            int id = (Integer)data.get(CITY_ID);
+            String name = (String)data.get(CITY_NAME);
+            int countryId = (Integer)data.get(COUNTRY_ID);
+            Country country = AppointmentDatabase.getInstance().getCountryWithId(countryId);
+            Timestamp createDate = (Timestamp)data.get(CREATE_DATE);
+            String createdBy = (String)data.get(CREATED_BY);
+            Timestamp lastUpdate = (Timestamp)data.get(LAST_UPDATE);
+            String lastUpdateBy = (String)data.get(LAST_UPDATE_BY);
+            
+            return new City(id, name, country, createDate, createdBy, lastUpdate, lastUpdateBy);
+        }
+        
+        throw new Exception("Error reading from array created from ResultSet row.");
+    }
 }

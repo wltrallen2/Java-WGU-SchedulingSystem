@@ -553,6 +553,14 @@ public class AppointmentDatabase {
         return newCustomer;
     }
     
+    /**
+     * Inserts the standard four metadata column-value pairs into the data HashMap.
+     * These pairs include the SQL Command NOW() for the createDate and lastUpdate
+     * columns and the username for the createdBy and the lastUpdateBy columns.
+     * 
+     * @param data a HashMap that maps String instances representing the column name
+     * to Object instances representing the values to be stored in those columns.
+     */
     private void insertStandardMetaDataIntoMap(HashMap<String, Object> data) {
         data.put(Country.CREATE_DATE, SQLCommand.NOW);
         data.put(Country.CREATED_BY, userName);

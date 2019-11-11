@@ -402,19 +402,19 @@ public class DBQuery {
     }
     
     /**
-     * Implodes a set of string to string maps into two separate strings, each
-     * delimited by a comma. The first set of strings (or keys in the original
-     * HashMap) represent the column names and the second set of strings represent
+     * Implodes a set of string to object maps into two separate strings, each
+     * delimited by a comma. The strings (or keys in the original
+     * HashMap) represent the column names and the objects represent
      * the values to be inserted into those columns. The data is returned in a
-     * HashMap with the first set of strings mapped to the key "columns" and the
-     * second set mapped to the key "values."
+     * HashMap with the strings mapped to the key "columns" and the
+     * objects mapped to the key "values."
      * 
-     * @param data a HashMap<String, String> where the keys are String object
+     * @param data a HashMap<String, Object> where the keys are String instances
      * representing the names of columns into which data is to be inserted and
-     * the values are String objects representing the data to be inserted into the
+     * the values are Object instances representing the data to be inserted into the
      * respective columns.
      * @return a HashMap<String, String> consisting of two key-value pairs: (1) for
-     * the key "columns", a String represnting a list of the columns into which data
+     * the key "columns", a String representing a list of the columns into which data
      * is to be inserted, and (2) for the key "values", a String representing the
      * list of data to be inserted respectively.
      */
@@ -451,10 +451,12 @@ public class DBQuery {
      * Implodes the keys and values in a HashMap into a formatted list for filtering
      * a set of results from an sql query. For example, the map { "id" -> "2",
      * "name" -> "Joe" } would be imploded into the following format:
-     * "id='2' and name='Joe'.
+     * "id=2 and name='Joe'. The method takes into account the formatting necessary
+     * to differentiate String values, Boolean values, SQL Command values, and
+     * numerical values.
      * 
-     * @param data a HashMap<String, String> representing the data to be imploded,
-     * where the first string represents the column to search and the second String
+     * @param data a HashMap<String, Object> representing the data to be imploded,
+     * where the string represents the column to search and the Object
      * represents the value to look for in that column.
      * @return a String representing the HashMap data in a format suitable for a 
      * WHERE statement in an sql query.

@@ -6,9 +6,15 @@
  */
 package allenschedulingsystem;
 
+import Model.Address;
+import Model.AppointmentDatabase;
+import Model.Customer;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.ResourceBundle;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,6 +23,10 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 /**
@@ -29,6 +39,11 @@ public class ASCustomerFXMLController implements Initializable {
     @FXML private Button returnButton;
     @FXML private Button addCustomerButton;
     
+    @FXML private TableView customerTable;
+    @FXML private TableColumn<Customer, String> customerNameColumn;
+    @FXML private TableColumn<Customer, Address> customerLocationColumn;
+    @FXML private TableColumn<Customer, Address> customerPhoneColumn;
+    
         /**
      * Initializes the controller class.
      * 
@@ -37,7 +52,10 @@ public class ASCustomerFXMLController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        loadDataAndPopulateTable();
+        
+        // TODO: Continue Here ===>>> Add Delete Button
+        // TODO: Add modify button and load selected customer info into next scene to be modified.
     }    
     
     /**
@@ -67,6 +85,51 @@ public class ASCustomerFXMLController implements Initializable {
         Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
         stage.setScene(scene);
         stage.show();
+    }
+    
+    private void loadDataAndPopulateTable() {
+        customerNameColumn.setCellValueFactory(
+            new PropertyValueFactory<>("customerName"));
+        customerLocationColumn.setCellValueFactory(
+            new PropertyValueFactory<>("address"));
+        customerPhoneColumn.setCellValueFactory(
+            new PropertyValueFactory<>("address"));
+        
+        customerLocationColumn.setCellFactory(column -> {
+            return new TableCell<Customer, Address>() {
+                @Override
+                protected void updateItem(Address item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if(item == null || empty) {
+                        setText(null);
+                    } else {
+                        String city = item.getCity().getCityName();
+                        String country = item.getCity().getCountry().getCountryName();
+                        setText(city + ", " + country);
+                    }
+                }
+            };
+        });
+        
+        customerPhoneColumn.setCellFactory(column -> {
+            return new TableCell<Customer, Address>() {
+                @Override
+                protected void updateItem(Address item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if (item == null || empty) {
+                        setText(null);
+                    } else {
+                        setText(item.getPhone());
+                    }
+                }
+            };
+        });
+        
+        HashMap<Integer, Customer> customers = AppointmentDatabase.getInstance().getCustomers();
+        ObservableList<Customer> items = FXCollections.observableArrayList(customers.values());
+        customerTable.setItems(items);
     }
 
 }

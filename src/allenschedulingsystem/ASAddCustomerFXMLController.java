@@ -82,12 +82,12 @@ public class ASAddCustomerFXMLController implements Initializable {
      * @throws IOException 
      */    
     @FXML private void segueToNewScene (ActionEvent event) throws IOException {
-        String filename = "ASCustomerFXML.fxml";
-        
-        Parent parent = FXMLLoader.load(getClass().getResource(filename));
         if(event.getSource().equals(saveButton)) {
             saveCustomerInformation();
         }
+
+        String filename = "ASCustomerFXML.fxml";
+        Parent parent = FXMLLoader.load(getClass().getResource(filename));
         
         Scene scene = new Scene(parent);
         Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
