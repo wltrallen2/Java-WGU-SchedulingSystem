@@ -239,6 +239,9 @@ public class AppointmentDatabase {
         String orderByColumnName = "country";
         ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
         
+        // TODO: Can these be refractored to use the getHashMapFromResultSetRow method
+        // Current problem is that the getHashMapFromResultSetRow method calls on the
+        // Singleton instance, which is not yet instantiated fully. What is the workaround?
         while(rs.next()) {
             int id = rs.getInt(Country.COUNTRY_ID);
             String name = rs.getString(Country.COUNTRY_NAME);
@@ -368,7 +371,6 @@ public class AppointmentDatabase {
         return map;
     }
 
-    
     /**
      * Retrieves a country from the database if it already exists, OR adds the
      * country to the database if the country does not already exist and returns
@@ -553,6 +555,148 @@ public class AppointmentDatabase {
         return newCustomer;
     }
     
+    /**
+     * Removes a customer from the Customer table in the database as well as removes
+     * the corresponding Customer instance from the AppointmentDatabase singleton
+     * instance. Additionally, since the main structure of the database is unable to
+     * be altered, this method will then call the removeAddress function which will
+     * test to see if that address is assigned to another customer, and if not,
+     * will remove it from the database.
+     * 
+     * @param customer a Customer instance representing the customer to be removed
+     * @return true if the customer was removed from the database, false if not
+     */
+    public boolean removeCustomer(Customer customer) {
+        boolean success = false;
+        
+        Address address = customer.getAddress();
+        
+        HashMap<String, Object> filterData = new HashMap<>();
+        filterData.put(Customer.CUSTOMER_ID, customer.getCustomerId());
+        if(DBQuery.deleteFromTable(Customer.TABLE_NAME, filterData) == 1) {
+            customers.remove(customer.getCustomerId());
+            removeAddress(address);
+            success = true;
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Removes an address from the Address table in the database as well as removes
+     * the corresponding Address instance from the AppointmentDatabase singleton
+     * instance if and only if the address is not assigned to another customer in
+     * the customer table of the database. Additionally, since the main structure
+     * of the database is unable to be altered, this method will then call the 
+     * removeCity function which will test to see if that city is assigned to 
+     * another address, and if not, will remove it from the database.
+     * 
+     * @param address an Address instance representing the address to be removed
+     * @return true if the address was removed from the database, false if not
+     */
+    public boolean removeAddress(Address address) {
+        boolean success = false;
+        
+        City city = address.getCity();
+        
+        HashMap<String, Object> filterData = new HashMap<>();
+        filterData.put(Address.ADDRESS_ID, address.getAddressId());
+        if(DBQuery.getCountOfRowsForFilterData(Customer.TABLE_NAME, filterData) == 0
+                && DBQuery.deleteFromTable(Address.TABLE_NAME, filterData) == 1) {
+            addresses.remove(address.getAddressId());
+            removeCity(city);
+            success = true;
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Removes a city from the City table in the database as well as removes
+     * the corresponding City instance from the AppointmentDatabase singleton
+     * instance, if and only if the city is not assigned to another address in
+     * the address table. Additionally, since the main structure of the database
+     * is unable to be altered, this method will then call the removeCountry 
+     * function which will test to see if that country is assigned to another
+     * city, and if not, will remove it from the database.
+     * 
+     * @param city a City instance representing the city to be removed
+     * @return true if the city was removed from the database, false if not
+     */
+    public boolean removeCity(City city) {
+        boolean success = false;
+        
+        Country country = city.getCountry();
+        
+        HashMap<String, Object> filterData = new HashMap<>();
+        filterData.put(City.CITY_ID, city.getCityId());
+        if(DBQuery.getCountOfRowsForFilterData(Address.TABLE_NAME, filterData) == 0
+                && DBQuery.deleteFromTable(City.TABLE_NAME, filterData) == 1) {
+            cities.remove(city.getCityId());
+            removeCountry(country);
+            success = true;
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Removes a country from the Country table in the database as well as removes
+     * the corresponding Country instance from the AppointmentDatabase singleton
+     * instance, if and only if the Country is not assigned to a city in the 
+     * city table of the database.
+     * 
+     * @param country a Country instance representing the country to be removed
+     * @return true if the country was removed from the database, false if not
+     */
+    public boolean removeCountry(Country country) {
+        boolean success = false;
+        
+        HashMap<String, Object> filterData = new HashMap<>();
+        filterData.put(Country.COUNTRY_ID, country.getCountryId());
+        if(DBQuery.getCountOfRowsForFilterData(City.TABLE_NAME, filterData) == 0
+                && DBQuery.deleteFromTable(Country.TABLE_NAME, filterData) == 1) {
+            countries.remove(country.getCountryId());
+            success = true;
+        }
+        
+        return success;
+    }
+
+    /** Updates the information for a customer by comparing the original Customer
+     * instance with a new instance of Customer containing the update information.
+     * The method will update the customer name and addressId as necessary. Then,
+     * the method calls on the remove methods for address, city, and country, which
+     * will delete the old address, city, and/or country from the database if they
+     * are not associated with any current customer records.
+     * 
+     * @param oldCustomer a Customer instance representing the original customer
+     * data that is to be altered.
+     * @param newCustomer a Customer instance representing the new customer data
+     * that is to replace the old data.
+     */
+    public void updateCustomerInformation(Customer oldCustomer, Customer newCustomer) {
+        if(!oldCustomer.getCustomerName().equals(newCustomer.getCustomerName())) {
+            DBQuery.updateSingleValueInDatabase
+                    (Customer.TABLE_NAME, Customer.CUSTOMER_NAME, newCustomer.getCustomerName(),
+                    Customer.CUSTOMER_ID, oldCustomer.getCustomerId());
+        }
+        
+        if(!oldCustomer.getAddress().equals(newCustomer.getAddress())) {
+            DBQuery.updateSingleValueInDatabase
+                    (Customer.TABLE_NAME, Customer.ADDRESS_ID, newCustomer.getAddress().getAddressId(),
+                    Customer.CUSTOMER_ID, oldCustomer.getCustomerId());
+        }
+
+        Address address = oldCustomer.getAddress();
+        City city = address.getCity();
+        Country country = city.getCountry();
+        
+        removeAddress(address);
+        removeCity(city);
+        removeCountry(country);
+    }
+
     /**
      * Inserts the standard four metadata column-value pairs into the data HashMap.
      * These pairs include the SQL Command NOW() for the createDate and lastUpdate

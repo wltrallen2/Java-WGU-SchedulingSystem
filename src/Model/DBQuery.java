@@ -74,7 +74,7 @@ public class DBQuery {
             String primaryKeyColumnName, int primaryKeyValue) {
         boolean success = false;
         
-        String query = "UPDATE " + table + " SET " + columnName + "='?'" +
+        String query = "UPDATE " + table + " SET " + columnName + "= ?" +
                 " WHERE " + primaryKeyColumnName + "=" + primaryKeyValue;
         
         try {
@@ -83,7 +83,7 @@ public class DBQuery {
 
             if(prepstmt.executeUpdate() > 0) { success = true; }
         } catch(SQLException ex) {
-            System.out.println("SQLException in AppointmentDatabase updateSingleValueInDatabase method");
+            System.out.println("SQLException in DBQuery updateSingleValueInDatabase method");
             System.out.println(ex);
         }
         return success;
@@ -110,7 +110,7 @@ public class DBQuery {
             String primaryKeyColumnName, int primaryKeyValue) {
         boolean success = false;
         
-        String query = "UPDATE " + table + " SET " + columnName + "='?'" +
+        String query = "UPDATE " + table + " SET " + columnName + "= ?" +
                 " WHERE " + primaryKeyColumnName + "=" + primaryKeyValue;
         
         try {
@@ -119,7 +119,7 @@ public class DBQuery {
 
             if(prepstmt.executeUpdate() > 0) { success = true; }
         } catch(SQLException ex) {
-            System.out.println("SQLException in AppointmentDatabase in updateSingleValueInDatabase method.");
+            System.out.println("SQLException in DBQuery in updateSingleValueInDatabase method.");
             System.out.println(ex);
         }
         return success;
@@ -146,7 +146,7 @@ public class DBQuery {
             String primaryKeyColumnName, int primaryKeyValue) {
         boolean success = false;
         
-        String query = "UPDATE " + table + " SET " + columnName + "='?'" +
+        String query = "UPDATE " + table + " SET " + columnName + "= ?" +
                 " WHERE " + primaryKeyColumnName + "=" + primaryKeyValue;
         
         try {
@@ -155,7 +155,7 @@ public class DBQuery {
 
             if(prepstmt.executeUpdate() > 0) { success = true; }
         } catch(SQLException ex) {
-            System.out.println("SQLException in AppointmentDatabase updateSingleValueInDatabase method.");
+            System.out.println("SQLException in DBQuery updateSingleValueInDatabase method.");
             System.out.println(ex);
         }
         
@@ -186,7 +186,7 @@ public class DBQuery {
 
             if(rs.next()) { rowNum = rs.getInt(1); }
         } catch(SQLException ex) {
-            System.out.println("SQLException in AppointmentDatabase in recordExistsInDatabase method");
+            System.out.println("SQLException in DBQuery in recordExistsInDatabase method");
             System.out.println(ex);
         }
         
@@ -226,11 +226,39 @@ public class DBQuery {
                 genKey = genKeys.getInt(1);
         }
         } catch (SQLException ex) {
-            System.out.println("SQLException in ApointmentDatabase insertRowIntoDatabase method.");
+            System.out.println("SQLException in DBQuery insertRowIntoDatabase method.");
             System.out.println(ex);
         }
         
         return genKey;
+    }
+    
+    /**
+     * Deletes records from a table in the database by matching records to the
+     * filter data that is passed into the method.
+     * 
+     * @param tableName a String representing the name of the table from which 
+     * rows are to be deleted.
+     * @param filterData a HashMap mapping Strings to Objects, where the String
+     * represents the name of the column to check and the Object represents the
+     * value to match in the given column.
+     * @return an int representing the number of rows that were successfully deleted 
+     * from the table.
+     */
+    public static int deleteFromTable(String tableName, HashMap<String, Object> filterData) {
+        int success = 0;
+        
+        String filter = implodeFilterData(filterData);
+        String query = "DELETE FROM " + tableName + " WHERE " + filter;
+        
+        try {
+            success = DBConnection.conn.createStatement().executeUpdate(query);
+        } catch(SQLException ex) {
+            System.out.println("SQLException in DBQuery deleteFromTable() method.");
+            System.out.println(ex);
+        }
+        
+        return success;
     }
 
     /**
@@ -333,6 +361,35 @@ public class DBQuery {
     public static ResultSet getResultSetOfAllOrderedRows(String tableName, String orderByColumn) {
         String[] columnNames = { "*" };
         return getResultSetForFilteredOrderedSelectStatement(columnNames, tableName, "", orderByColumn);
+    }
+    
+    /**
+     * Allows the user to query a table and retrieve the number of rows that match a
+     * given set of filtered values.
+     * 
+     * @param tableName a String object representing the name of the table to be queried
+     * @param filterData a Hashmap mapping String instances to Object instances where
+     * the Strings represent the column name and the Objects represent the values
+     * to be searched for in those columns.
+     * @return an int representing the number of rows found that match the filter data.
+     */
+    public static int getCountOfRowsForFilterData(String tableName, HashMap<String, Object> filterData) {
+        int numRows = 0;
+        
+        String filter = implodeFilterData(filterData);
+        String query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + filter;
+        
+        try {
+            ResultSet rs = DBConnection.conn.createStatement().executeQuery(query);
+            while(rs.next()) {
+                numRows = rs.getInt("COUNT(*)");
+            }
+        } catch(SQLException ex) {
+            System.out.println("SQLException in DBQuery in getCountOfRowsForFilterData method.");
+            System.out.println(ex);
+        }
+        
+        return numRows;
     }
     
     /**

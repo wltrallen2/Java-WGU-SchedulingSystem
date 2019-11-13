@@ -38,13 +38,15 @@ public class ASCustomerFXMLController implements Initializable {
     
     @FXML private Button returnButton;
     @FXML private Button addCustomerButton;
+    @FXML private Button modifyCustomerButton;
+    @FXML private Button deleteCustomerButton;
     
-    @FXML private TableView customerTable;
+    @FXML private TableView<Customer> customerTable;
     @FXML private TableColumn<Customer, String> customerNameColumn;
     @FXML private TableColumn<Customer, Address> customerLocationColumn;
     @FXML private TableColumn<Customer, Address> customerPhoneColumn;
     
-        /**
+    /**
      * Initializes the controller class.
      * 
      * @param url The location used to resolve relative paths for the root object, or null if the location is not known.
@@ -53,9 +55,6 @@ public class ASCustomerFXMLController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         loadDataAndPopulateTable();
-        
-        // TODO: Continue Here ===>>> Add Delete Button
-        // TODO: Add modify button and load selected customer info into next scene to be modified.
     }    
     
     /**
@@ -63,7 +62,9 @@ public class ASCustomerFXMLController implements Initializable {
      * been triggered. The method will currently segue to an instance of the
      * ASScheduleFXML scene when the user clicks the "Return" button, and to an
      * instance of the ASAddCustomerFXML scene when the user clicks the "Add
-     * Customer" button.
+     * Customer" or "Modify Selected Customer" button. When the user clicks the
+     * "Modify Selected Customer" button, the customer parameter of the ASAddCustomerFXML
+     * scene is set and the form fields are populated with that customer's information.
      * 
      * @param event the ActionEvent that triggers the segue; in this case, the
      * user clicking the "Return" or the "Add Customer" button.
@@ -75,18 +76,51 @@ public class ASCustomerFXMLController implements Initializable {
         Object source = event.getSource();
         if(source.equals(returnButton)) {
             filename = "ASScheduleFXML.fxml";
-        } else if(source.equals(addCustomerButton)) {
+        } else if(source.equals(addCustomerButton) || source.equals(modifyCustomerButton)) {
             filename = "ASAddCustomerFXML.fxml";
         }
         
-        Parent parent = FXMLLoader.load(getClass().getResource(filename));
-        Scene scene = new Scene(parent);
-        
-        Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
-        stage.setScene(scene);
-        stage.show();
+        Customer customerToModify = customerTable.getSelectionModel().getSelectedItem();
+        if(!source.equals(modifyCustomerButton) || customerToModify != null) {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(filename));
+            Parent parent = loader.load();
+            Scene scene = new Scene(parent);
+
+            if(event.getSource().equals(modifyCustomerButton)
+                    && loader.getController() instanceof ASAddCustomerFXMLController) {
+                ASAddCustomerFXMLController controller = loader.getController();
+                controller.setCustomer(customerToModify);
+            }
+
+            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        }
     }
     
+    /**
+     * Deletes the customer that is currently selected in the customerTable
+     * from both the AppointmentDatabase customers HashMap and from the customer
+     * table in the database itself. Note that by calling the removeCustomer method
+     * from the AppointmentDatabase Singleton instance, unused addresses, cities,
+     * and countries will also be deleted from the database.
+     * 
+     * @param event the ActionEvent that triggers this method, in this case, the
+     * user clicking on the Delete Selected Customer button.
+     */
+    @FXML private void deleteCustomer(ActionEvent event) {
+        Customer customerToDelete = customerTable.getSelectionModel().getSelectedItem();
+        if(customerToDelete != null) {
+            AppointmentDatabase.getInstance().removeCustomer(customerToDelete);
+            loadDataAndPopulateTable();
+        }
+    }
+  
+    /**
+     * Loads the data for the customer table, sets the cellValueFactorys that
+     * will populate the table, and sets the items for the table as the list
+     * of customers in the AppointmentDatabase Singelton instance.
+     */
     private void loadDataAndPopulateTable() {
         customerNameColumn.setCellValueFactory(
             new PropertyValueFactory<>("customerName"));

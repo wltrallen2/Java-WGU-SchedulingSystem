@@ -13,6 +13,9 @@ import Model.Country;
 import Model.Customer;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -57,11 +60,13 @@ public class ASAddCustomerFXMLController implements Initializable {
     @FXML private TextField postalCodeTextField;
     @FXML private TextField phoneTextField;
     
-    @FXML private ComboBox cityComboBox;
-    @FXML private ComboBox countryComboBox;
+    @FXML private ComboBox<String> cityComboBox;
+    @FXML private ComboBox<String> countryComboBox;
+    
+    @FXML private Customer customer;
     
     /**
-     * Initializes the controller class, setting the selection itesm for the
+     * Initializes the controller class, setting the selection items for the
      * city and country combo boxes.
      * 
      * @param url The location used to resolve relative paths for the root object, or null if the location is not known.
@@ -71,6 +76,31 @@ public class ASAddCustomerFXMLController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         setComboBoxItemsForCities();
         setComboBoxItemsForCountries();
+        //TODO: Set ActionListener on comboboxes to autocomplete as user types.
+    }
+    
+    /**
+     * Sets the customer parameter with a Customer instance representing the
+     * information to be pre-loaded into the form. Additionally, this method
+     * pre-loads the data into the form.
+     * 
+     * @param customer a Customer instance
+     */
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+        nameTextField.setText(customer.getCustomerName());
+        
+        Address address = customer.getAddress();
+        address1TextField.setText(address.getAddressLine1());
+        address2TextField.setText(address.getAddressLine2());
+        postalCodeTextField.setText(address.getPostalCode());
+        phoneTextField.setText(address.getPhone());
+        
+        City city = address.getCity();
+        cityComboBox.getSelectionModel().select(city.getCityName());
+        
+        Country country = city.getCountry();
+        countryComboBox.getSelectionModel().select(country.getCountryName());
     }
     
     /**
@@ -85,7 +115,7 @@ public class ASAddCustomerFXMLController implements Initializable {
         if(event.getSource().equals(saveButton)) {
             saveCustomerInformation();
         }
-
+        
         String filename = "ASCustomerFXML.fxml";
         Parent parent = FXMLLoader.load(getClass().getResource(filename));
         
@@ -93,6 +123,27 @@ public class ASAddCustomerFXMLController implements Initializable {
         Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
         stage.setScene(scene);
         stage.show();
+    }
+ 
+    /** Retrieves the information in the form and saves it to a HashMap, mapping
+     * String identifiers to the String values. The identifiers used are the static
+     * variables: Customer.CUSTOMER_NAME, Address.ADDRESS_LINE1, Address.ADDRESS_LINE2,
+     * Address.POSTAL_CODE, Address.PHONE, City.CITY_NAME, and Country.COUNTRY_NAME.
+     * 
+     * @return a HashMap mapping String identifiers to String values.
+     */
+    private HashMap<String, String> getFormInformation() {
+        HashMap<String, String> info = new HashMap<>();
+        
+        info.put(Customer.CUSTOMER_NAME, nameTextField.getText());
+        info.put(Address.ADDRESS_LINE1, address1TextField.getText());
+        info.put(Address.ADDRESS_LINE2, address2TextField.getText());
+        info.put(Address.POSTAL_CODE, postalCodeTextField.getText());
+        info.put(Address.PHONE, phoneTextField.getText());
+        info.put(City.CITY_NAME, cityComboBox.getSelectionModel().getSelectedItem());
+        info.put(Country.COUNTRY_NAME, countryComboBox.getSelectionModel().getSelectedItem());
+        
+        return info;
     }
     
     /**
@@ -105,27 +156,40 @@ public class ASAddCustomerFXMLController implements Initializable {
      * has been altered in some way.
      */
     private void saveCustomerInformation() {
-        // TODO: Check to see if updating a customer's info. If so, save over instead
-        // of saving new.
+        HashMap<String, String> info = getFormInformation();
         
-        String countryName = (String)countryComboBox.getSelectionModel().getSelectedItem();
-        Country country = AppointmentDatabase.getInstance().getCountryFromDB(countryName);
-        
-        String cityName = (String)cityComboBox.getSelectionModel().getSelectedItem();
-        City city = AppointmentDatabase.getInstance().getCityFromDB(cityName, country);
-        
-        String address1 = address1TextField.getText();
-        String address2 = address2TextField.getText();
-        String postalCode = postalCodeTextField.getText();
-        String phone = phoneTextField.getText();
+        Country country = AppointmentDatabase.getInstance()
+                .getCountryFromDB(info.get(Country.COUNTRY_NAME));
+        City city = AppointmentDatabase.getInstance()
+                .getCityFromDB(info.get(City.CITY_NAME), country);
         Address address = AppointmentDatabase.getInstance()
-                .getAddressFromDb(address1, address2, city, postalCode, phone);
+                .getAddressFromDb(info.get(Address.ADDRESS_LINE1),info.get(Address.ADDRESS_LINE2),
+                        city, info.get(Address.POSTAL_CODE), info.get(Address.PHONE));
         
-        String name = nameTextField.getText();
-        Customer customer = AppointmentDatabase.getInstance()
-                .getCustomerFromDb(name, address, true);
+        if(customer == null) {
+            customer = AppointmentDatabase.getInstance()
+                    .getCustomerFromDb(info.get(Customer.CUSTOMER_NAME), address, true);
+        } else {
+            HashMap<String, Object> data = new HashMap<>();
+            data.put(Customer.CUSTOMER_ID, customer.getCustomerId());
+            data.put(Customer.CUSTOMER_NAME, info.get(Customer.CUSTOMER_NAME));
+            data.put(Customer.ACTIVE, true);
+            data.put(Customer.ADDRESS_ID, address.getAddressId());
+            data.put(Customer.CREATE_DATE, customer.getCreateDate());
+            data.put(Customer.CREATED_BY, customer.getCreatedBy());
+            data.put(Customer.LAST_UPDATE, new Timestamp(new Date().getTime()));
+            data.put(Customer.LAST_UPDATE_BY, AppointmentDatabase.getInstance().getUserName());
+            
+            try {
+                Customer newCustomer = Customer.createCustomerInstanceFromHashMap(data);
+                AppointmentDatabase.getInstance().updateCustomerInformation(customer, newCustomer);
+            } catch(Exception ex) {
+                System.out.println("Exception in ASAddCustomerFXMLController in saveCustomerInformation method.");
+                System.out.println(ex);
+            }
+        }
     }
-        
+            
     /**
      * Set the selection items for the countries combo box, using the unique set
      * of country names in the Country table.
