@@ -15,18 +15,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.TreeSet;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
-import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -36,12 +29,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import javafx.util.Callback;
-import javafx.util.StringConverter;
 
 /**
  * FXML Controller class that allows the user to add a customer or modify a
@@ -51,6 +41,7 @@ import javafx.util.StringConverter;
  */
 public class ASAddCustomerFXMLController implements Initializable {
     
+    @FXML private Label sceneTitleLabel;
     @FXML private Button saveButton;
     @FXML private Button cancelButton;
     
@@ -82,11 +73,14 @@ public class ASAddCustomerFXMLController implements Initializable {
     /**
      * Sets the customer parameter with a Customer instance representing the
      * information to be pre-loaded into the form. Additionally, this method
-     * pre-loads the data into the form.
+     * pre-loads the data into the form and changes the scene label from
+     * "Add New Customer" to "Modify Customer Record".
      * 
      * @param customer a Customer instance
      */
     public void setCustomer(Customer customer) {
+        sceneTitleLabel.setText("Modify Customer Record");
+        
         this.customer = customer;
         nameTextField.setText(customer.getCustomerName());
         

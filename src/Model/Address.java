@@ -92,9 +92,8 @@ public class Address {
      * and in the database itself.
      * 
      * @param id - an int representing the addressId in the database
-     * @throws java.sql.SQLException
      */
-    public void setAddressId(int id) throws SQLException {
+    public void setAddressId(int id) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, ADDRESS_ID, id, ADDRESS_ID, this.addressId);
         this.addressId = id;
     }
@@ -104,9 +103,8 @@ public class Address {
      * and in the database itself.
      * 
      * @param address - a String representing the first line of the address in the database
-     * @throws java.sql.SQLException
      */
-    public void setAddressLine1(String address) throws SQLException {
+    public void setAddressLine1(String address) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, ADDRESS_LINE1, address, ADDRESS_ID, this.addressId);
         this.address = address;
     }
@@ -116,9 +114,8 @@ public class Address {
      * and in the database itself.
      * 
      * @param address - a String representing the second line of the address in the database
-     * @throws java.sql.SQLException
      */
-    public void setAddressLine2(String address) throws SQLException {
+    public void setAddressLine2(String address) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, ADDRESS_LINE2, address, ADDRESS_ID, this.addressId);
         this.address2 = address;
     }
@@ -129,9 +126,8 @@ public class Address {
      * 
      * @param city - an instance of a City object representing 
      * the city for the given address
-     * @throws java.sql.SQLException
      */
-    public void setCityId(City city) throws SQLException {
+    public void setCityId(City city) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, CITY_ID, city.getCityId(),
                 ADDRESS_ID, this.addressId);
         this.city = city;
@@ -143,10 +139,8 @@ public class Address {
      * 
      * @param postalCode - a String representing the postal code for the
      * given address
-     * 
-     * @throws SQLException 
      */
-    public void setPostalCode(String postalCode) throws SQLException {
+    public void setPostalCode(String postalCode) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, POSTAL_CODE, postalCode,
                 ADDRESS_ID, addressId);
         this.postalCode = postalCode;
@@ -158,10 +152,8 @@ public class Address {
      * 
      * @param phoneNumber - a String representing the phone number associated with the
      * given address
-     * 
-     * @throws SQLException 
      */
-    public void setPhone(String phoneNumber) throws SQLException {
+    public void setPhone(String phoneNumber) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, PHONE, phoneNumber,
                 ADDRESS_ID, addressId);
         this.phone = phoneNumber;
@@ -173,9 +165,8 @@ public class Address {
      * 
      * @param timestamp - a TimeStamp object representing the creation date 
      * of the database record
-     * @throws java.sql.SQLException
      */
-    public void setCreateDate(Timestamp timestamp) throws SQLException {
+    public void setCreateDate(Timestamp timestamp) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, CREATE_DATE, timestamp, ADDRESS_ID, this.addressId);
         this.createDate = timestamp;
     }
@@ -186,9 +177,8 @@ public class Address {
      * 
      * @param creator - a String object representing the creator 
      * of the database record
-     * @throws java.sql.SQLException
      */
-    public void setCreatedBy(String creator) throws SQLException {
+    public void setCreatedBy(String creator) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, CREATED_BY, creator, ADDRESS_ID, this.addressId);
         this.createdBy = creator;
     }
@@ -199,9 +189,8 @@ public class Address {
      * 
      * @param timestamp - a TimeStamp object representing the date of the last update 
      * of the database record
-     * @throws java.sql.SQLException
      */
-    public void setUpdateDate(Timestamp timestamp) throws SQLException {
+    public void setUpdateDate(Timestamp timestamp) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, LAST_UPDATE, timestamp, ADDRESS_ID, this.addressId);
         this.lastUpdate = timestamp;
     }
@@ -212,9 +201,8 @@ public class Address {
      * 
      * @param updator - a String object representing the name of the last user to update 
      * the database record
-     * @throws java.sql.SQLException
      */
-    public void setUpdatedBy(String updator) throws SQLException {
+    public void setUpdatedBy(String updator) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, LAST_UPDATE_BY, updator, ADDRESS_ID, this.addressId);
         this.lastUpdateBy = updator;
     }

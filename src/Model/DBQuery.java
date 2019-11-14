@@ -22,6 +22,8 @@ import java.util.HashMap;
  */
 public class DBQuery {
     
+    // TODO: This should be in the AppointmentDatabase class OR should be 
+    // generalized so that it's not Database specific.
     /**
      * Queries the company database to see if there is a matching user with the
      * given password. The method will return an int representing the userId
@@ -46,7 +48,7 @@ public class DBQuery {
                 userId = rs.getInt("userId");
             }
         } catch(SQLException ex) {
-            System.out.println("SQLException in AppointmentDatabase fetchUserId method.");
+            System.out.println("SQLException in DBQuery fetchUserId method.");
             System.out.println(ex);
         }
         

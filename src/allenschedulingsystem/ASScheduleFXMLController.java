@@ -28,6 +28,9 @@ import javafx.stage.Stage;
 public class ASScheduleFXMLController implements Initializable {
     
     @FXML private Button viewCustomerDBButton;
+    @FXML private Button addButton;
+    @FXML private Button modifyButton;
+    @FXML private Button deleteButton;
 
     /**
      * Initializes the controller class.
@@ -60,6 +63,7 @@ public class ASScheduleFXMLController implements Initializable {
      * @throws IOException 
      */
     @FXML private void segueToNewScene (ActionEvent event) throws IOException {
+        // TODO: Update to segue when modifying an appointment
         String filename = "";
         if(event.getSource().equals(viewCustomerDBButton)) {
             filename = "ASCustomerFXML.fxml";
@@ -73,5 +77,7 @@ public class ASScheduleFXMLController implements Initializable {
         stage.show();
     }
 
-    
+    @FXML private void deleteAppointment(ActionEvent event) {
+        // TODO: Implement deleteAppointment
+    }
 }

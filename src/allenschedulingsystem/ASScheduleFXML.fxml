@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="allenschedulingsystem.ASScheduleFXMLController">
+<AnchorPane id="AnchorPane" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="allenschedulingsystem.ASScheduleFXMLController">
    <children>
       <Button layoutX="716.0" layoutY="552.0" mnemonicParsing="false" onAction="#exitButtonPressed" text="Exit Scheduling System" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="14.0" />
       <Label layoutX="22.0" layoutY="18.0" text="ABC Scheduling System" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="14.0">
@@ -19,5 +19,8 @@
             <Font name="Helvetica" size="14.0" />
          </font>
       </Label>
+      <Button fx:id="addButton" layoutX="18.0" layoutY="559.0" mnemonicParsing="false" onAction="#segueToNewScene" prefWidth="150.0" text="Add Appointment" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="14.0" />
+      <Button fx:id="modifyButton" layoutX="136.0" layoutY="559.0" mnemonicParsing="false" onAction="#segueToNewScene" prefWidth="200.0" text="Modify Selected Appointment" AnchorPane.leftAnchor="170.0" />
+      <Button fx:id="deleteButton" layoutX="392.0" layoutY="559.0" mnemonicParsing="false" onAction="#deleteAppointment" prefWidth="200.0" text="Delete Selected Appointment" AnchorPane.leftAnchor="375.0" />
    </children>
 </AnchorPane>
