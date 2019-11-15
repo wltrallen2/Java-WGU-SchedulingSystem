@@ -229,6 +229,7 @@ public class DBQuery {
         }
         } catch (SQLException ex) {
             System.out.println("SQLException in DBQuery insertRowIntoDatabase method.");
+            System.out.println(query);
             System.out.println(ex);
         }
         
@@ -491,6 +492,8 @@ public class DBQuery {
                 values.add(((SQLCommand) value).command());
             } else if (value instanceof String) {
                 values.add("'" + (String)value + "'");
+            } else if (value instanceof Timestamp) {
+                values.add("'" + ((Timestamp)value).toString() + "'");
             } else if (value instanceof Boolean) {
                 values.add((Boolean)value ? "1" : "0");
             } else {

@@ -432,7 +432,7 @@ public class Appointment {
      * @return an Appointment instance that contains the data that was passed into the method.
      * @throws Exception 
      */
-    public static Appointment createAddressInstanceFromHashMap(HashMap<String, Object> data) 
+    public static Appointment createAppointmentInstanceFromHashMap(HashMap<String, Object> data) 
             throws Exception {
         if(data.containsKey(APPOINTMENT_ID) && data.get(APPOINTMENT_ID) instanceof Integer
                 && data.containsKey(CUSTOMER_ID) && data.get(CUSTOMER_ID) instanceof Integer

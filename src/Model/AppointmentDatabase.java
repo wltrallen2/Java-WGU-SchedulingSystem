@@ -24,11 +24,13 @@ public class AppointmentDatabase {
     private HashMap<Integer, Address> addresses;
     private HashMap<Integer, City> cities;
     private HashMap<Integer, Country> countries;
+    private HashMap<Integer, Appointment> appointments;
     
     private Timestamp lastUpdateToCustomers;
     private Timestamp lastUpdateToAddresses;
     private Timestamp lastUpdateToCities;
     private Timestamp lastUpdateToCountries;
+    private Timestamp lastUpdateToAppointments;
     
     /**
      * Class constructor. Sets the name of the user that is accessing the database.
@@ -43,6 +45,7 @@ public class AppointmentDatabase {
         cities = pullCitiesFromDB();
         addresses = pullAddressesFromDB();
         customers = pullCustomersFromDB();
+        appointments = pullAppointmentsFromDB();
     }
     
     /**
@@ -90,7 +93,13 @@ public class AppointmentDatabase {
     public String getUserName() {
         return userName;
     }
-        
+    
+    public int getUserId() {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("userName", userName);
+        return DBQuery.recordExistsInDatabase("user", data);
+    }
+    
     /**
      * Returns a HashMap that maps the countryIds to the Country objects. 
      * 
@@ -161,6 +170,18 @@ public class AppointmentDatabase {
         return customers;
     }
     
+    public HashMap<Integer, Appointment> getAppointments() {
+        try {
+            if(!getLastUpdateTimestampForTable(Appointment.TABLE_NAME).equals(lastUpdateToAppointments)) {
+                appointments = pullAppointmentsFromDB();
+            }
+        } catch (SQLException ex) {
+            System.out.println(ex);
+        }
+        
+        return appointments;
+    }
+    
     /**
      * Allows the user to access an instance of a Country using the countryId value.
      * 
@@ -199,6 +220,10 @@ public class AppointmentDatabase {
      */
     public Customer getCustomerWithId(int customerId) {
         return customers.get(customerId);
+    }
+    
+    public Appointment getAppointmentWithId(int appointmentId) {
+        return appointments.get(appointmentId);
     }
     
     /**
@@ -250,7 +275,7 @@ public class AppointmentDatabase {
             Timestamp lastUpdate = rs.getTimestamp(Country.LAST_UPDATE);
             String lastUpdateBy = rs.getString(Country.LAST_UPDATE_BY);
             
-            if(lastUpdateToCountries == null || !lastUpdate.equals(lastUpdateToCountries)) {
+            if(lastUpdateToCountries == null || lastUpdate.after(lastUpdateToCountries)) {
                 lastUpdateToCountries = lastUpdate;
             }
             
@@ -284,7 +309,7 @@ public class AppointmentDatabase {
             Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
             String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
             
-            if(lastUpdateToCities == null || !lastUpdate.equals(lastUpdateToCities)) {
+            if(lastUpdateToCities == null || lastUpdate.after(lastUpdateToCities)) {
                 lastUpdateToCities = lastUpdate;
             }
             
@@ -322,7 +347,7 @@ public class AppointmentDatabase {
             Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
             String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
             
-            if(lastUpdateToAddresses == null || !lastUpdate.equals(lastUpdateToAddresses)) {
+            if(lastUpdateToAddresses == null || lastUpdate.after(lastUpdateToAddresses)) {
                 lastUpdateToAddresses = lastUpdate;
             }
             
@@ -359,13 +384,49 @@ public class AppointmentDatabase {
             Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
             String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
             
-            if(lastUpdateToCustomers == null || !lastUpdate.equals(lastUpdateToCustomers)) {
+            if(lastUpdateToCustomers == null || lastUpdate.after(lastUpdateToCustomers)) {
                 lastUpdateToCustomers = lastUpdate;
             }
             
             Address address = addresses.get(addressId);
             map.put(id, new Customer(id, name, address, active,
                     createDate, createdBy, lastUpdate, lastUpdateBy));
+        }
+        
+        return map;
+    }
+    
+       private HashMap<Integer, Appointment> pullAppointmentsFromDB() throws SQLException {
+        HashMap<Integer, Appointment> map = new HashMap<>();
+        String tableName = Appointment.TABLE_NAME;
+        String orderByColumnName = Appointment.START_TIME;
+        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
+
+        while(rs.next()) {
+            int appointmentId = rs.getInt(Appointment.APPOINTMENT_ID);
+            int customerId = rs.getInt(Appointment.CUSTOMER_ID);
+            int userId = rs.getInt(Appointment.USER_ID);
+            String title = rs.getString(Appointment.TITLE);
+            String description = rs.getString(Appointment.DESCRIPTION);
+            String location = rs.getString(Appointment.LOCATION);
+            String contact = rs.getString(Appointment.CONTACT);
+            String type = rs.getString(Appointment.TYPE);
+            String url = rs.getString(Appointment.URL);
+            Timestamp start = rs.getTimestamp(Appointment.START_TIME);
+            Timestamp end = rs.getTimestamp(Appointment.END_TIME);
+            Timestamp createDate = rs.getTimestamp(Appointment.CREATE_DATE);
+            String createdBy = rs.getString(Appointment.CREATED_BY);
+            Timestamp lastUpdate = rs.getTimestamp(Appointment.LAST_UPDATE);
+            String lastUpdateBy = rs.getString(Appointment.LAST_UPDATE_BY);
+            
+            Customer customer = getCustomerWithId(customerId);
+            if(lastUpdateToAppointments == null || lastUpdate.after(lastUpdateToAppointments)) {
+                lastUpdateToAppointments = lastUpdate;
+            }
+            
+            map.put(appointmentId, new Appointment(appointmentId, customer, userId,
+                title, description, location, contact, type, url, start, end,
+                createDate, createdBy, lastUpdate, lastUpdateBy));
         }
         
         return map;
@@ -554,6 +615,44 @@ public class AppointmentDatabase {
         
         return newCustomer;
     }
+    
+    public Appointment createNewAppointmentInDb(HashMap<String, Object> data) {
+        insertStandardMetaDataIntoMap(data);
+        int newId = DBQuery.insertRowIntoDatabase(Appointment.TABLE_NAME, data, Appointment.APPOINTMENT_ID);
+        
+        if(newId == -1) { return null; }
+
+        String[] colNamesToRetrieve = { "*" };
+        data = DBQuery.getHashMapFromResultSetRow(
+                DBQuery.getResultSetForFilteredSelectStatement(
+                colNamesToRetrieve, Appointment.TABLE_NAME, Appointment.APPOINTMENT_ID + "=" + newId));
+        
+        Appointment newAppointment = null;
+        try {
+            newAppointment = Appointment.createAppointmentInstanceFromHashMap(data);
+            appointments.put(newId, newAppointment);
+            lastUpdateToAppointments = newAppointment.getLastUpdate();
+        } catch(Exception ex) {
+            System.out.println("Exception in AppointmentDatabase createNewAppointmentInDb method");
+            System.out.println(ex);
+        }
+        
+        return newAppointment;
+    }
+    
+    public boolean removeApointment(Appointment appointment) {
+        boolean success = false;
+        
+        HashMap<String, Object> filterData = new HashMap<>();
+        filterData.put(Appointment.APPOINTMENT_ID, appointment.getAppointmentId());
+        if(DBQuery.deleteFromTable(Customer.TABLE_NAME, filterData) == 1) {
+            appointments.remove(appointment.getAppointmentId());
+            success = true;
+        }
+        
+        return success;
+    }
+
     
     /**
      * Removes a customer from the Customer table in the database as well as removes

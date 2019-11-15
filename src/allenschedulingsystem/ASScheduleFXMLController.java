@@ -63,14 +63,22 @@ public class ASScheduleFXMLController implements Initializable {
      * @throws IOException 
      */
     @FXML private void segueToNewScene (ActionEvent event) throws IOException {
-        // TODO: Update to segue when modifying an appointment
+        // TODO: NEXT >>> Update to segue when modifying an appointment
         String filename = "";
         if(event.getSource().equals(viewCustomerDBButton)) {
             filename = "ASCustomerFXML.fxml";
+        } else {
+            filename = "ASAddAppointmentFXML.fxml";
         }
         
-        Parent parent = FXMLLoader.load(getClass().getResource(filename));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(filename));
+        Parent parent = loader.load();
         Scene scene = new Scene(parent);
+        
+        if(event.getSource().equals(modifyButton) && false) {
+                //& appointmentTable.getSelectionModel().getSelection() != null) {
+                //TODO: Finish implementation to set appointment & change title in modify scene
+        }
         
         Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
         stage.setScene(scene);
