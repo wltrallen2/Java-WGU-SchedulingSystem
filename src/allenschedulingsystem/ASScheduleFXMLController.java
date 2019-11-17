@@ -6,10 +6,19 @@
  */
 package allenschedulingsystem;
 
+import Model.Appointment;
+import Model.AppointmentDatabase;
+import Model.Customer;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,6 +27,10 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 /**
@@ -31,6 +44,14 @@ public class ASScheduleFXMLController implements Initializable {
     @FXML private Button addButton;
     @FXML private Button modifyButton;
     @FXML private Button deleteButton;
+    
+    @FXML private TableView<Appointment> appointmentTable;
+    @FXML private TableColumn<Appointment, Timestamp> dateColumn;
+    @FXML private TableColumn<Appointment, Timestamp> startColumn;
+    @FXML private TableColumn<Appointment, Timestamp> endColumn;
+    @FXML private TableColumn<Appointment, Customer> customerColumn;
+    @FXML private TableColumn<Appointment, String> locationColumn;
+    @FXML private TableColumn<Appointment, String> descriptionColumn;
 
     /**
      * Initializes the controller class.
@@ -40,8 +61,105 @@ public class ASScheduleFXMLController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-    }    
+        loadAndPopulateAppointmentTable();
+    }
+    
+    // TODO: NEXT ===>>> Accidentally wrote population as one method under populateCustomerColumn
+    // Rewrite and decompose appropriately.
+    
+    // TODO: NEXT2 ===>>> Sorting of date/start/end columns
+    
+    // TODO: NEXT3 ===>>> Catch up on JavaDoc
+    private void loadAndPopulateAppointmentTable() {
+//        populateDateColumn();
+//        populateStartColumn();
+//        populateEndColumn();
+        populateCustomerColumn();
+//        populateLocationColumn();
+//        populateDescriptionColumn();
+    }
+    
+    private void populateCustomerColumn() {
+        dateColumn.setCellValueFactory(
+            new PropertyValueFactory<>("start"));
+        startColumn.setCellValueFactory(
+            new PropertyValueFactory<>("start"));
+        endColumn.setCellValueFactory(
+            new PropertyValueFactory<>("end"));
+        customerColumn.setCellValueFactory(
+            new PropertyValueFactory<>("customer"));
+        locationColumn.setCellValueFactory(
+            new PropertyValueFactory<>("location"));
+        descriptionColumn.setCellValueFactory(
+            new PropertyValueFactory<>("description"));
+        
+        dateColumn.setCellFactory(column -> {
+            return new TableCell<Appointment, Timestamp>() {
+                @Override
+                protected void updateItem(Timestamp item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if(item == null || empty) {
+                        setText(null);
+                    } else {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+                        setText(item.toLocalDateTime().format(formatter));
+                    }
+                }
+            };
+        });
+        
+        startColumn.setCellFactory(column -> {
+            return new TableCell<Appointment, Timestamp>() {
+                @Override
+                protected void updateItem(Timestamp item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if(item == null || empty) {
+                        setText(null);
+                    } else {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
+                        setText(item.toLocalDateTime().format(formatter));
+                    }
+                }
+            };
+        });
+        
+        endColumn.setCellFactory(column -> {
+            return new TableCell<Appointment, Timestamp>() {
+                @Override
+                protected void updateItem(Timestamp item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if(item == null || empty) {
+                        setText(null);
+                    } else {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
+                        setText(item.toLocalDateTime().format(formatter));
+                    }
+                }
+            };
+        });
+
+        customerColumn.setCellFactory(column -> {
+            return new TableCell<Appointment, Customer>() {
+                @Override
+                protected void updateItem(Customer item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if (item == null || empty) {
+                        setText(null);
+                    } else {
+                        setText(item.getCustomerName());
+                    }
+                }
+            };
+        });
+                
+        HashMap<Integer, Appointment> appointments = AppointmentDatabase.getInstance().getAppointments();
+        ObservableList<Appointment> items = FXCollections.observableArrayList(appointments.values());
+        appointmentTable.setItems(items);
+    }
         
     /**
      * Exits the application when the exit button is pressed.
@@ -63,29 +181,44 @@ public class ASScheduleFXMLController implements Initializable {
      * @throws IOException 
      */
     @FXML private void segueToNewScene (ActionEvent event) throws IOException {
-        // TODO: NEXT >>> Update to segue when modifying an appointment
-        String filename = "";
-        if(event.getSource().equals(viewCustomerDBButton)) {
-            filename = "ASCustomerFXML.fxml";
+        // In the event that the user clicks the Modify button, but no appointment
+        // has been selected in the table, then the method will return and no
+        // segue will occur.
+        if(event.getSource().equals(modifyButton)
+                && appointmentTable.getSelectionModel().getSelectedItem() == null) {
+            return;
         } else {
-            filename = "ASAddAppointmentFXML.fxml";
+            String filename = "";
+            if(event.getSource().equals(viewCustomerDBButton)) {
+                filename = "ASCustomerFXML.fxml";
+            } else {
+                filename = "ASAddAppointmentFXML.fxml";
+            }
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(filename));
+            Parent parent = loader.load();
+            Scene scene = new Scene(parent);
+
+            if(event.getSource().equals(modifyButton)
+                    && appointmentTable.getSelectionModel().getSelectedItem() != null) {
+                    ASAddAppointmentFXMLController controller = loader.getController();
+                    Appointment appointment = appointmentTable.getSelectionModel().getSelectedItem();
+                    controller.setAppointment(appointment);
+            }
+
+            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
         }
         
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(filename));
-        Parent parent = loader.load();
-        Scene scene = new Scene(parent);
-        
-        if(event.getSource().equals(modifyButton) && false) {
-                //& appointmentTable.getSelectionModel().getSelection() != null) {
-                //TODO: Finish implementation to set appointment & change title in modify scene
-        }
-        
-        Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
-        stage.setScene(scene);
-        stage.show();
+        return;
     }
 
     @FXML private void deleteAppointment(ActionEvent event) {
-        // TODO: Implement deleteAppointment
+        Appointment appointment = appointmentTable.getSelectionModel().getSelectedItem();
+        if(appointment != null) {
+            AppointmentDatabase.getInstance().removeApointment(appointment);
+            loadAndPopulateAppointmentTable();
+        }
     }
 }

@@ -1,9 +1,9 @@
 # Java-WGU-SchedulingSystem
 WORK IN PROGRESS - Java application developed as part of the requirements for Western Governor's University C192 - Advanced Java Concepts
 
-**CURRENT STATUS NOTE:** _*The Login scene and the Customer Scenes is implemented, including the ability to view, add, modify, and delete customers. Use the username test and password test to login.*_
+**CURRENT STATUS NOTE:** _*The Login, Appointment, and Customer Scenes are implemented, including the ability to view, add, modify, and delete appointments and customers. Use the username test and password test to login.*_
 
-**NEXT STEPS:** _*Implement the Appointment Scene.*_
+**NEXT STEPS:** _*Adjust the sorting in both the appointment and customer tables, refractor the loadAndPopulateAppointmentTable into better decomposed methods, and update all javadoc.*_
 
 For this project, the student is required to implement the following requirements:
 
@@ -11,7 +11,7 @@ For this project, the student is required to implement the following requirement
 
 - [x] Provide the ability to add, update, and delete customer records in the database, including name, address, and phone number.
 
-- [ ] Provide the ability to add, update, and delete appointments, capturing the type of appointment and a link to the specific customer record in the database.
+- [x] Provide the ability to add, update, and delete appointments, capturing the type of appointment and a link to the specific customer record in the database.
 
 - [ ] Provide the ability to view the calendar by month and by week.
 

@@ -7,6 +7,8 @@
 package Model;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
 /**
@@ -104,6 +106,11 @@ public class Appointment {
                 + description + "\n"
                 + location + ", " + start + " - " + end;
     }
+    
+    private void setUpdatedValues() {
+        setLastUpdate(Timestamp.valueOf(LocalDateTime.now()));
+        setLastUpdateBy(AppointmentDatabase.getInstance().getUserName());
+    }
 
     /***************************************************************************
      * SETTERS
@@ -118,6 +125,7 @@ public class Appointment {
     public void setAppointmentId(int apptId) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, APPOINTMENT_ID, apptId,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.appointmentId = apptId;
     }
     
@@ -130,6 +138,7 @@ public class Appointment {
     public void setCustomer(Customer customer) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, CUSTOMER_ID, customer.getCustomerId(),
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.customer = customer;
     }
     
@@ -142,6 +151,7 @@ public class Appointment {
     public void setUserId(int userId) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, USER_ID, userId,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.userId = userId;
     }
     
@@ -154,6 +164,7 @@ public class Appointment {
     public void setTitle(String title) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, TITLE, title,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.title = title;
     }
     
@@ -166,6 +177,7 @@ public class Appointment {
     public void setDescription(String desc) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, DESCRIPTION, desc,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.description = desc;
     }
     
@@ -178,6 +190,7 @@ public class Appointment {
     public void setLocation(String loc) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, LOCATION, loc,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.location = loc;
     }
     
@@ -190,6 +203,7 @@ public class Appointment {
     public void setContact(String contact) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, CONTACT, contact,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.contact = contact;
     }
     
@@ -202,6 +216,7 @@ public class Appointment {
     public void setType(String type) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, TYPE, type,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.type = type;
     }
     
@@ -214,6 +229,7 @@ public class Appointment {
     public void setURL(String url) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, URL, url,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.url = url;
     }
     
@@ -226,6 +242,7 @@ public class Appointment {
     public void setStart(Timestamp start) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, START_TIME, start,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.start = start;
     }
     
@@ -238,6 +255,7 @@ public class Appointment {
     public void setEnd(Timestamp end) {
         DBQuery.updateSingleValueInDatabase(TABLE_NAME, END_TIME, end,
                 APPOINTMENT_ID, this.appointmentId);
+        setUpdatedValues();
         this.end = end;
     }
     

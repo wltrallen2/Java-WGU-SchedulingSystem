@@ -645,7 +645,7 @@ public class AppointmentDatabase {
         
         HashMap<String, Object> filterData = new HashMap<>();
         filterData.put(Appointment.APPOINTMENT_ID, appointment.getAppointmentId());
-        if(DBQuery.deleteFromTable(Customer.TABLE_NAME, filterData) == 1) {
+        if(DBQuery.deleteFromTable(Appointment.TABLE_NAME, filterData) == 1) {
             appointments.remove(appointment.getAppointmentId());
             success = true;
         }

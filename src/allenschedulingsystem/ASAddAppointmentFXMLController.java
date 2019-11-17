@@ -8,12 +8,12 @@ package allenschedulingsystem;
 
 import Model.Appointment;
 import Model.AppointmentDatabase;
-import Model.Country;
 import Model.Customer;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;
@@ -30,8 +30,10 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 /**
  * FXML Controller class
@@ -66,10 +68,44 @@ public class ASAddAppointmentFXMLController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
         setCountryComboBoxItems();
         setTimeComboBoxItems();
-    }    
+    }
+    
+    public void setAppointment(Appointment appointment) {
+        this.appointment = appointment;
+        
+        customerComboBox.setValue(appointment.getCustomer());
+        titleTextField.setText(appointment.getTitle());
+        descriptionTextField.setText(appointment.getDescription());
+        locationTextField.setText(appointment.getLocation());
+        contactTextField.setText(appointment.getContact());
+        typeTextField.setText(appointment.getType());
+        urlTextField.setText(appointment.getURL());
+        
+        Timestamp start = appointment.getStart();
+        LocalDateTime date = start.toLocalDateTime();
+        datePicker.setValue(LocalDate.from(date));
+        
+        int startHour = start.toLocalDateTime().getHour();
+        String startPeriod = (startHour <= 12 ? "AM" : "PM" );
+        startHour = (startHour <= 12 ? startHour : startHour - 12);
+        
+        startHourComboBox.setValue(startHour);
+        startMinuteComboBox.setValue(start.toLocalDateTime().getMinute());
+        startPeriodComboBox.setValue(startPeriod);
+        
+        Timestamp end = appointment.getEnd();
+        int endHour = end.toLocalDateTime().getHour();
+        String endPeriod = (endHour <= 12 ? "AM" : "PM");
+        endHour = (endHour <= 12 ? endHour : endHour - 12);
+        
+        endHourComboBox.setValue(endHour);
+        endMinuteComboBox.setValue(end.toLocalDateTime().getMinute());
+        endPeriodComboBox.setValue(endPeriod);
+        
+        sceneTitleLabel.setText("View/Modify Appointment Details");
+    }
     
     @FXML private void segueToNewScene(ActionEvent event) throws IOException {
         if(event.getSource().equals(saveButton)) {
@@ -108,9 +144,9 @@ public class ASAddAppointmentFXMLController implements Initializable {
     private void setTimeComboBoxItems() {
         Integer[] hours = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
         
-        Integer[] minutes = new Integer[60];
-        for(int i = 0; i < 60; i++) {
-            minutes[i] = i;
+        Integer[] minutes = new Integer[12];
+        for(int i = 0; i < 12; i++) {
+            minutes[i] = i * 5;
         }
         
         String[] period = { "AM", "PM" };
@@ -118,7 +154,7 @@ public class ASAddAppointmentFXMLController implements Initializable {
         startHourComboBox.setItems(FXCollections.observableArrayList(hours));
         endHourComboBox.setItems(FXCollections.observableArrayList(hours));
         
-        startMinuteComboBox.setCellFactory(cell -> {
+        Callback<ListView<Integer>, ListCell<Integer>> cellFactory = cell -> {
            return new ListCell<Integer>() {
                @Override
                public void updateItem(Integer item, boolean empty) {
@@ -131,23 +167,13 @@ public class ASAddAppointmentFXMLController implements Initializable {
                    }
                }
            };
-        });
+        };
         
-        // TODO: Minutes under 10 are showing up as single digits once selected
-        endMinuteComboBox.setCellFactory(cell -> {
-           return new ListCell<Integer>() {
-               @Override
-               public void updateItem(Integer item, boolean empty) {
-                   super.updateItem(item, empty);
-                   
-                   if(item == null || empty) {
-                       setText("");
-                   } else {
-                       setText(item < 10 ? "0" + item : "" + item);
-                   }
-               }
-           };
-        });
+        startMinuteComboBox.setCellFactory(cellFactory);
+        startMinuteComboBox.setButtonCell(cellFactory.call(null));
+        
+        endMinuteComboBox.setCellFactory(cellFactory);
+        endMinuteComboBox.setButtonCell(cellFactory.call(null));
 
         
         startMinuteComboBox.setItems(FXCollections.observableArrayList(minutes));
@@ -159,13 +185,40 @@ public class ASAddAppointmentFXMLController implements Initializable {
     
     private void saveAppointmentInfo() {
         HashMap<String, Object> data = getHashMapForAppointmentCreation();
-        AppointmentDatabase.getInstance().createNewAppointmentInDb(data);
-        // TODO: NEXT 2ND >>> Implement this method for when it is a modified appointment
+        
+        if(appointment == null) {
+            AppointmentDatabase.getInstance().createNewAppointmentInDb(data);
+        } else {
+            Customer newCustomer = 
+                    AppointmentDatabase.getInstance().getCustomerWithId
+                    ((Integer)data.get(Appointment.CUSTOMER_ID));
+            
+            if(!appointment.getCustomer().equals(newCustomer)) {
+                appointment.setCustomer(newCustomer); }
+            if(!appointment.getTitle().equals(data.get(Appointment.TITLE))) {
+                appointment.setTitle(((String)data.get(Appointment.TITLE))); }
+            if(!appointment.getDescription().equals(data.get(Appointment.DESCRIPTION))) {
+                appointment.setDescription(((String)data.get(Appointment.DESCRIPTION))); }
+            if(!appointment.getLocation().equals(data.get(Appointment.LOCATION))) {
+                appointment.setLocation(((String)data.get(Appointment.LOCATION))); }
+            if(!appointment.getContact().equals(data.get(Appointment.CONTACT))) {
+                appointment.setContact(((String)data.get(Appointment.CONTACT))); }
+            if(!appointment.getType().equals(data.get(Appointment.TYPE))) {
+                appointment.setType(((String)data.get(Appointment.TYPE))); }
+            if(!appointment.getURL().equals(data.get(Appointment.URL))) {
+                appointment.setURL(((String)data.get(Appointment.URL))); }
+            if(!appointment.getStart().equals(data.get(Appointment.START_TIME))) {
+                appointment.setStart(((Timestamp)data.get(Appointment.START_TIME))); }
+            if(!appointment.getEnd().equals(data.get(Appointment.END_TIME))) {
+                appointment.setEnd(((Timestamp)data.get(Appointment.END_TIME))); }
+        }
     }
     
     private String getAdjustedTimeString(int hour, int minute, String period) {
-        String adjHour = (hour < 10 && period.equals("AM") ? "0" + hour : "" + (hour + 12));
-        String adjMinute = (minute < 10 && period.equals("AM") ? "0" + minute : "" + minute);
+        hour = period.equals("AM") ? hour : (hour + 12);
+        String adjHour = (hour < 10 ? "0" + hour : "" + hour);
+        
+        String adjMinute = (minute < 10 ? "0" + minute : "" + minute);
         return adjHour + ":" + adjMinute + ":00";
     }
     
