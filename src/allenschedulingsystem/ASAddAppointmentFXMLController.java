@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -62,13 +64,14 @@ public class ASAddAppointmentFXMLController implements Initializable {
     @FXML private ComboBox<String> endPeriodComboBox;
     
     private Appointment appointment;
+    //TODO: Continue with javadoc from this point.
 
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        setCountryComboBoxItems();
+        setCustomerComboBoxItems();
         setTimeComboBoxItems();
     }
     
@@ -121,9 +124,11 @@ public class ASAddAppointmentFXMLController implements Initializable {
         stage.show();
     }
     
-    private void setCountryComboBoxItems() {
+    private void setCustomerComboBoxItems() {
         Collection<Customer> customers = AppointmentDatabase.getInstance().getCustomers().values();
-        customerComboBox.setItems(FXCollections.observableArrayList(customers));
+        ObservableList<Customer> obsCustomers = FXCollections.observableArrayList(customers);
+        obsCustomers.sort((Customer c1, Customer c2) -> c1.getCustomerName().compareTo(c2.getCustomerName()));
+        customerComboBox.setItems(FXCollections.observableArrayList(obsCustomers));
         
         customerComboBox.setCellFactory(cell -> {
             return new ListCell<Customer>(){

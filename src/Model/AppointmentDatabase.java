@@ -94,6 +94,11 @@ public class AppointmentDatabase {
         return userName;
     }
     
+    /**
+     * Utilizes the String stored in the user name to obtain the user id.
+     * 
+     * @return an int representing the userId for the current user.
+     */
     public int getUserId() {
         HashMap<String, Object> data = new HashMap<>();
         data.put("userName", userName);
@@ -101,7 +106,10 @@ public class AppointmentDatabase {
     }
     
     /**
-     * Returns a HashMap that maps the countryIds to the Country objects. 
+     * Returns a HashMap that maps the countryIds to the Country objects,
+     * reloading the countries from the database if the current values for the
+     * lastUpdateToCountries property does not equal the max value of the
+     * lastUpdate column in the country table of the database.
      * 
      * @return a HashMap<Integer, Country> representing the list of Country objects
      * in the database.
@@ -120,7 +128,10 @@ public class AppointmentDatabase {
     }
     
     /**
-     * Returns a HashMap that maps the cityIds to the City objects.
+     * Returns a HashMap that maps the cityIds to the City objects,
+     * reloading the cities from the database if the current values for the
+     * lastUpdateToCities property does not equal the max value of the
+     * lastUpdate column in the city table of the database.
      * 
      * @return a HashMap<Integer, City> representing the list of City objects in
      * the database.
@@ -137,7 +148,10 @@ public class AppointmentDatabase {
     }
     
     /**
-     * Returns a HashMap that maps the addressIds to the Address objects.
+     * Returns a HashMap that maps the addressIds to the Address objects,
+     * reloading the addresses from the database if the current values for the
+     * lastUpdateToAddressess property does not equal the max value of the
+     * lastUpdate column in the address table of the database.
      * 
      * @return a HashMap<Integer, Address> representing the list of Addresses
      * objects in the database.
@@ -154,7 +168,10 @@ public class AppointmentDatabase {
     }
     
     /**
-     * Returns a HashMap that maps the customerIds to the Customer objects.
+     * Returns a HashMap that maps the customerIds to the Customer objects,
+     * reloading the customers from the database if the current values for the
+     * lastUpdateToCustomers property does not equal the max value of the
+     * lastUpdate column in the customer table of the database.
      * 
      * @return a HashMap<Integer, Customer> representing the list of Customer
      * objects in the database.
@@ -170,6 +187,15 @@ public class AppointmentDatabase {
         return customers;
     }
     
+    /**
+     * Returns a HashMap that maps the appointmentIds to the Appointment objects,
+     * reloading the appointments from the database if the current values for the
+     * lastUpdateToAppointments property does not equal the max value of the
+     * lastUpdate column in the appointment table of the database.
+     * 
+     * @return a Hashmap<Integer, Appointment> representing the list of Appointment
+     * objects in the database.
+     */
     public HashMap<Integer, Appointment> getAppointments() {
         try {
             if(!getLastUpdateTimestampForTable(Appointment.TABLE_NAME).equals(lastUpdateToAppointments)) {
@@ -216,12 +242,18 @@ public class AppointmentDatabase {
      * Allows the user to access an instance of a Customer using the customerId value.
      * 
      * @param customerId an int representing the customer id to be accessed.
-     * @return a Customer object whose address id value matches the customer id passed
+     * @return a Customer object whose id value matches the customer id passed
      */
     public Customer getCustomerWithId(int customerId) {
         return customers.get(customerId);
     }
     
+    /**
+     * Allows the user to access an instance of an Appointment using the appointmentId value.
+     * 
+     * @param appointmentId an int representing the appointmentId to be accessed.
+     * @return an Appointment instance whose id value matches the appointmentId passed.
+     */
     public Appointment getAppointmentWithId(int appointmentId) {
         return appointments.get(appointmentId);
     }
@@ -396,7 +428,16 @@ public class AppointmentDatabase {
         return map;
     }
     
-       private HashMap<Integer, Appointment> pullAppointmentsFromDB() throws SQLException {
+    /**
+     * Pulls the appointments from the Appointment table in the database and creates a
+     * HashMap that maps the appointmentIds to instances of Appointment objects representing
+     * each address.
+
+     * @return a HashMap mapping ints (representing appointment ids) to Appointment objects
+     * (representing each appointment in the database)
+     * @throws SQLException 
+     */
+    private HashMap<Integer, Appointment> pullAppointmentsFromDB() throws SQLException {
         HashMap<Integer, Appointment> map = new HashMap<>();
         String tableName = Appointment.TABLE_NAME;
         String orderByColumnName = Appointment.START_TIME;
@@ -616,6 +657,20 @@ public class AppointmentDatabase {
         return newCustomer;
     }
     
+    /**
+     * Creates a new row in the appointment table of the database based on the data
+     * passed in column-value pairs as long as all of the following column keys
+     * are in the passed HashMap: customerId, userId, title, description, location,
+     * contact, type, url, start, and end. (The method inserts the standard metadata
+     * (createDate, createdBy, lastUpdate, and lastUpdateBy), so these should not
+     * be included in the column-value pairs.
+     * 
+     * @param data a HashMap<String, Object> mapping the column keys to the values
+     * to be inserted into each of those columns in the appointment database.
+     * @return an int representing the primary key autogenerated by the database
+     * upon the creation of the new row in the appointment table, or -1 if no row
+     * is created.
+     */
     public Appointment createNewAppointmentInDb(HashMap<String, Object> data) {
         insertStandardMetaDataIntoMap(data);
         int newId = DBQuery.insertRowIntoDatabase(Appointment.TABLE_NAME, data, Appointment.APPOINTMENT_ID);
@@ -640,6 +695,15 @@ public class AppointmentDatabase {
         return newAppointment;
     }
     
+    /**
+     * Removes a row from the appointment table in the database as well as removing
+     * the corresponding Appointment instance from the appointments property in
+     * the AppointmentDatabase singleton instance.
+     * 
+     * @param appointment an Appointment instance representing the appointment
+     * to be removed
+     * @return true if the appointment was removed successfully, false if not
+     */
     public boolean removeApointment(Appointment appointment) {
         boolean success = false;
         
@@ -653,7 +717,6 @@ public class AppointmentDatabase {
         return success;
     }
 
-    
     /**
      * Removes a customer from the Customer table in the database as well as removes
      * the corresponding Customer instance from the AppointmentDatabase singleton

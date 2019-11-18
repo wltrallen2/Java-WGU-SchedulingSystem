@@ -66,6 +66,10 @@ public class Customer {
         this.lastUpdateBy = updatorName;
     }
     
+    /**
+     * @return a String representation of the Customer object containing the
+     * String value of the customerName property.
+     */
     @Override
     public String toString() {
         return customerName + "\n" + address.toString();

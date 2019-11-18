@@ -8,6 +8,7 @@ package allenschedulingsystem;
 
 import Model.Address;
 import Model.AppointmentDatabase;
+import Model.City;
 import Model.Customer;
 import java.io.IOException;
 import java.net.URL;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -146,6 +148,15 @@ public class ASCustomerFXMLController implements Initializable {
             };
         });
         
+        customerLocationColumn.setComparator((Address a1, Address a2) -> {
+            City city1 = a1.getCity();
+            City city2 = a2.getCity();
+            String c1 = city1.getCityName() + city1.getCountry().getCountryName();
+            String c2 = city2.getCityName() + city2.getCountry().getCountryName();
+            
+            return c1.compareTo(c2);
+        });
+        
         customerPhoneColumn.setCellFactory(column -> {
             return new TableCell<Customer, Address>() {
                 @Override
@@ -162,8 +173,12 @@ public class ASCustomerFXMLController implements Initializable {
         });
         
         HashMap<Integer, Customer> customers = AppointmentDatabase.getInstance().getCustomers();
-        ObservableList<Customer> items = FXCollections.observableArrayList(customers.values());
+        ObservableList<Customer> obsItems = FXCollections.observableArrayList(customers.values());
+        obsItems.sort((Customer c1, Customer c2) -> c1.getCustomerName().compareTo(c2.getCustomerName()));
+        SortedList<Customer> items = new SortedList<>(obsItems);
+        items.comparatorProperty().bind(customerTable.comparatorProperty());
         customerTable.setItems(items);
+        
     }
 
 }

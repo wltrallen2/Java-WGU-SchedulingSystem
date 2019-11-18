@@ -19,6 +19,7 @@ import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -71,28 +72,20 @@ public class ASScheduleFXMLController implements Initializable {
     
     // TODO: NEXT3 ===>>> Catch up on JavaDoc
     private void loadAndPopulateAppointmentTable() {
-//        populateDateColumn();
-//        populateStartColumn();
-//        populateEndColumn();
+        populateDateTimeColumns();
         populateCustomerColumn();
-//        populateLocationColumn();
-//        populateDescriptionColumn();
+        populateOtherStringColumns();
+        setItemsForAppointmentTable();
     }
     
-    private void populateCustomerColumn() {
+    private void populateDateTimeColumns() {
         dateColumn.setCellValueFactory(
             new PropertyValueFactory<>("start"));
         startColumn.setCellValueFactory(
             new PropertyValueFactory<>("start"));
         endColumn.setCellValueFactory(
             new PropertyValueFactory<>("end"));
-        customerColumn.setCellValueFactory(
-            new PropertyValueFactory<>("customer"));
-        locationColumn.setCellValueFactory(
-            new PropertyValueFactory<>("location"));
-        descriptionColumn.setCellValueFactory(
-            new PropertyValueFactory<>("description"));
-        
+
         dateColumn.setCellFactory(column -> {
             return new TableCell<Appointment, Timestamp>() {
                 @Override
@@ -108,7 +101,7 @@ public class ASScheduleFXMLController implements Initializable {
                 }
             };
         });
-        
+                
         startColumn.setCellFactory(column -> {
             return new TableCell<Appointment, Timestamp>() {
                 @Override
@@ -140,6 +133,11 @@ public class ASScheduleFXMLController implements Initializable {
                 }
             };
         });
+    }
+    
+    private void populateCustomerColumn() {
+        customerColumn.setCellValueFactory(
+            new PropertyValueFactory<>("customer"));        
 
         customerColumn.setCellFactory(column -> {
             return new TableCell<Appointment, Customer>() {
@@ -155,11 +153,25 @@ public class ASScheduleFXMLController implements Initializable {
                 }
             };
         });
-                
+    }
+    
+    private void populateOtherStringColumns() {
+        locationColumn.setCellValueFactory(
+            new PropertyValueFactory<>("location"));
+        descriptionColumn.setCellValueFactory(
+            new PropertyValueFactory<>("description"));
+    }
+    
+    private void setItemsForAppointmentTable() {
         HashMap<Integer, Appointment> appointments = AppointmentDatabase.getInstance().getAppointments();
         ObservableList<Appointment> items = FXCollections.observableArrayList(appointments.values());
+        
+        items.sort((Appointment a1, Appointment a2) -> a1.getStart().compareTo(a2.getStart()));
+        SortedList<Appointment> sortedItems = new SortedList<>(items);
+        sortedItems.comparatorProperty().bind(appointmentTable.comparatorProperty());
+        
         appointmentTable.setItems(items);
-    }
+        }
         
     /**
      * Exits the application when the exit button is pressed.

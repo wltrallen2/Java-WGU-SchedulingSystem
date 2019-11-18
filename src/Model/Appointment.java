@@ -107,6 +107,10 @@ public class Appointment {
                 + location + ", " + start + " - " + end;
     }
     
+    /**
+     * Sets the lastUpdate property to the current date and time, and sets the
+     * lastUpdatedBy property to the current user name.
+     */
     private void setUpdatedValues() {
         setLastUpdate(Timestamp.valueOf(LocalDateTime.now()));
         setLastUpdateBy(AppointmentDatabase.getInstance().getUserName());
