@@ -12,13 +12,17 @@ import Model.Customer;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -28,11 +32,15 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 /**
  * FXML Controller class
@@ -41,10 +49,36 @@ import javafx.stage.Stage;
  */
 public class ASScheduleFXMLController implements Initializable {
     
+    private enum ViewOption {
+        ALL("View All Appointments"),
+        THIS_WEEKS("View This Week's"),
+        NEXT_WEEKS("View Next Week's"),
+        THIS_MONTHS("View This Month's"),
+        NEXT_MONTHS("View Next Month's");
+        
+        private String description;
+        
+        ViewOption(String desc) {
+            this.description = desc;
+        }
+        
+        public String getDescription() {
+            return description;
+        }
+    }
+    
+    private final ViewOption[] VIEW_BY_OPTIONS = { ViewOption.ALL,
+                                                    ViewOption.THIS_WEEKS,
+                                                    ViewOption.NEXT_WEEKS,
+                                                    ViewOption.THIS_MONTHS,
+                                                    ViewOption.NEXT_MONTHS };
+    
     @FXML private Button viewCustomerDBButton;
     @FXML private Button addButton;
     @FXML private Button modifyButton;
     @FXML private Button deleteButton;
+    
+    @FXML private ComboBox<ViewOption> viewByComboBox;
     
     @FXML private TableView<Appointment> appointmentTable;
     @FXML private TableColumn<Appointment, Timestamp> dateColumn;
@@ -71,10 +105,13 @@ public class ASScheduleFXMLController implements Initializable {
      * customer, location, and description columns.
      */
     private void loadAndPopulateAppointmentTable() {
+        populateViewByComboBox();
+
         populateDateTimeColumns();
         populateCustomerColumn();
         populateOtherStringColumns();
-        setItemsForAppointmentTable();
+        
+        setAndFilterItems(null);        
     }
     
     /**
@@ -181,16 +218,44 @@ public class ASScheduleFXMLController implements Initializable {
      * properties of the list of appointments and the appointment table in case
      * the user decides to sort by customer name or appointment location.
      */
-    private void setItemsForAppointmentTable() {
+    private FilteredList<Appointment> getItemsForAppointmentTable() {
         HashMap<Integer, Appointment> appointments = AppointmentDatabase.getInstance().getAppointments();
         ObservableList<Appointment> items = FXCollections.observableArrayList(appointments.values());
         
         items.sort((Appointment a1, Appointment a2) -> a1.getStart().compareTo(a2.getStart()));
-        SortedList<Appointment> sortedItems = new SortedList<>(items);
-        sortedItems.comparatorProperty().bind(appointmentTable.comparatorProperty());
+        FilteredList<Appointment> filteredItems = new FilteredList<>(items);
         
-        appointmentTable.setItems(items);
+        return filteredItems;
         }
+    
+    /**
+     * Sets the items for the View By ComboBox utilizing the five values of the
+     * ViewOption enum (NOW, THIS_WEEKS, NEXT_WEEKS, THIS_MONTHS, NEXT_MONTHS).
+     * Additionally, the method ses the cell factory and the button cell to display
+     * the readable description values of the ViewOption enums.
+     */
+    private void populateViewByComboBox() {
+        Callback<ListView<ViewOption>, ListCell<ViewOption>> cellFactory = (cell -> {
+           return new ListCell<ViewOption>() {
+               @Override
+               protected void updateItem(ViewOption v, boolean empty) {
+                   super.updateItem(v, empty);
+                   
+                   if(v == null || empty) {
+                       setText("");
+                   } else {
+                       setText(v.getDescription());
+                   }
+               }
+           };
+        });
+                    
+        viewByComboBox.setCellFactory(cellFactory);
+        viewByComboBox.setButtonCell(cellFactory.call(null));
+        
+        viewByComboBox.setItems(FXCollections.observableArrayList(VIEW_BY_OPTIONS));
+        viewByComboBox.setValue(ViewOption.ALL);
+    }
         
     /**
      * Exits the application when the exit button is pressed.
@@ -262,5 +327,60 @@ public class ASScheduleFXMLController implements Initializable {
             AppointmentDatabase.getInstance().removeApointment(appointment);
             loadAndPopulateAppointmentTable();
         }
+    }
+    
+    /**
+     * Filters the appointments in the table based on the value that the user
+     * has selected in the View By Combo Box.
+     * 
+     * @param event the ActionEvent that triggers the method, in this case, the
+     * user clicking and choosing a different value in the viewByComboBox
+     */
+    @FXML private void setAndFilterItems(ActionEvent event) {
+        FilteredList<Appointment> filteredItems = getItemsForAppointmentTable();
+                
+        Calendar targetCal = Calendar.getInstance();
+        int targetWeek = targetCal.get(Calendar.WEEK_OF_YEAR);
+        int targetMonth = targetCal.get(Calendar.MONTH);
+        int targetYear = targetCal.get(Calendar.YEAR);
+        
+        Calendar cal = Calendar.getInstance();
+        ViewOption v = viewByComboBox.getValue();
+        if (v.equals(ViewOption.THIS_WEEKS)) {
+            filteredItems = filteredItems.filtered(a -> {
+                cal.setTime(a.getStart());
+                int week = cal.get(Calendar.WEEK_OF_YEAR);
+                int year = cal.get(Calendar.YEAR);
+                return targetYear == year && targetWeek == week;
+                });
+        } else if (v.equals(ViewOption.NEXT_WEEKS)) {
+            filteredItems = filteredItems.filtered(a -> {
+                cal.setTime(a.getStart());
+                int week = cal.get(Calendar.WEEK_OF_YEAR);
+                int year = cal.get(Calendar.YEAR);
+                return (targetYear == year && targetWeek + 1 == week)
+                    || (targetYear + 1 == year && week == 1);
+            });
+        } else if (v.equals(ViewOption.THIS_MONTHS)) {
+            filteredItems = filteredItems.filtered(a -> {
+                cal.setTime(a.getStart());
+                int month = cal.get(Calendar.MONTH);
+                int year = cal.get(Calendar.YEAR);
+                return targetYear == year && targetMonth == month;
+            });
+        } else if (v.equals(ViewOption.NEXT_MONTHS)) {
+            filteredItems = filteredItems.filtered(a -> {
+                cal.setTime(a.getStart());
+                int month = cal.get(Calendar.MONTH);
+                int year = cal.get(Calendar.YEAR);
+                return (targetYear == year && targetMonth + 1 == month)
+                        || (targetYear + 1 == year && month == 1);
+            });
+        }
+        
+        SortedList<Appointment> sortedItems = new SortedList<>(filteredItems);
+        sortedItems.comparatorProperty().bind(appointmentTable.comparatorProperty());
+        
+        appointmentTable.setItems(sortedItems);
     }
 }
