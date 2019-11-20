@@ -21,7 +21,7 @@ For this project, the student is required to implement the following requirement
   * scheduling an appointment outside business hours
   * scheduling overlapping appointments
   * entering nonexistent or invalid customer data
-  * entering an incorrect username and password
+  x entering an incorrect username and password
 
 - [ ] Write two or more lambda expressions to make your program more efficient, justifying the use of each lambda expression with an in-line comment.
 

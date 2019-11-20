@@ -65,12 +65,11 @@ public class ASScheduleFXMLController implements Initializable {
         loadAndPopulateAppointmentTable();
     }
     
-    // TODO: NEXT ===>>> Accidentally wrote population as one method under populateCustomerColumn
-    // Rewrite and decompose appropriately.
-    
-    // TODO: NEXT2 ===>>> Sorting of date/start/end columns
-    
-    // TODO: NEXT3 ===>>> Catch up on JavaDoc
+    /**
+     * Loads the appointments into the AppointmentDatabase Singleton instance
+     * and populates the appointment table with the data from the start, end,
+     * customer, location, and description columns.
+     */
     private void loadAndPopulateAppointmentTable() {
         populateDateTimeColumns();
         populateCustomerColumn();
@@ -78,6 +77,11 @@ public class ASScheduleFXMLController implements Initializable {
         setItemsForAppointmentTable();
     }
     
+    /**
+     * Sets the CellValueFactorys and the CellFactorys for the date,
+     * start, and end columns in the appointment table. The method defines
+     * how the date, start time, and end times will be displayed.
+     */
     private void populateDateTimeColumns() {
         dateColumn.setCellValueFactory(
             new PropertyValueFactory<>("start"));
@@ -135,6 +139,10 @@ public class ASScheduleFXMLController implements Initializable {
         });
     }
     
+    /**
+     * Sets the CellValueFactorys and the CellFactorys for the customer column,
+     * defining that the column will display the customer name.
+     */
     private void populateCustomerColumn() {
         customerColumn.setCellValueFactory(
             new PropertyValueFactory<>("customer"));        
@@ -155,6 +163,10 @@ public class ASScheduleFXMLController implements Initializable {
         });
     }
     
+    /**
+     * Sets the CellValueFactorys and the CellFactorys for the location and
+     * the description columns in the appointment table.
+     */
     private void populateOtherStringColumns() {
         locationColumn.setCellValueFactory(
             new PropertyValueFactory<>("location"));
@@ -162,6 +174,13 @@ public class ASScheduleFXMLController implements Initializable {
             new PropertyValueFactory<>("description"));
     }
     
+    /**
+     * Sets the items for the appointment table by calling on the AppointmentDatabase
+     * Singleton Instance for a HashMap of Appointment instances, sorts these
+     * instances based on the start DateTime, and then binds the sorting comparator
+     * properties of the list of appointments and the appointment table in case
+     * the user decides to sort by customer name or appointment location.
+     */
     private void setItemsForAppointmentTable() {
         HashMap<Integer, Appointment> appointments = AppointmentDatabase.getInstance().getAppointments();
         ObservableList<Appointment> items = FXCollections.observableArrayList(appointments.values());
@@ -185,11 +204,14 @@ public class ASScheduleFXMLController implements Initializable {
     
     /**
      * Segues to a new fxml scene based on the source of the ActionEvent that has
-     * been triggered. The method will currently segue to an instance of the
-     * ASCustomerFXML scene when the user clicks the "View Customer Database" button.
+     * been triggered. The method will segue to an instance of the
+     * ASCustomerFXML scene when the user clicks the "View Customer Database" button,
+     * or will segue to the ASAddAppointmentFXML when the user clicks the "Add
+     * Appointment" or "View/Modify Appointment Details" button.
      * 
      * @param event the ActionEvent that triggers the segue; in this case, the
-     * user clicking the "View Customer Database" button.
+     * user clicking the "View Customer Database" button, or the user clicking
+     * either the "Add Appointment" or "View/Modify Appointment Details" button.
      * @throws IOException 
      */
     @FXML private void segueToNewScene (ActionEvent event) throws IOException {
@@ -226,6 +248,14 @@ public class ASScheduleFXMLController implements Initializable {
         return;
     }
 
+    /**
+     * Deletes the selected appointment from both the appointment table in the
+     * database and from the HashMap of Appointment instances in the Appointment
+     * Database Singleton instance.
+     * 
+     * @param event the ActionEvent that triggered the method, in this case, the
+     * user clicking the delete button.
+     */
     @FXML private void deleteAppointment(ActionEvent event) {
         Appointment appointment = appointmentTable.getSelectionModel().getSelectedItem();
         if(appointment != null) {

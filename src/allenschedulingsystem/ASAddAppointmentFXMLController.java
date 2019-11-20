@@ -64,7 +64,7 @@ public class ASAddAppointmentFXMLController implements Initializable {
     @FXML private ComboBox<String> endPeriodComboBox;
     
     private Appointment appointment;
-    //TODO: Continue with javadoc from this point.
+    //TODO: NEXT ===>>> Continue with javadoc from this point.
 
     /**
      * Initializes the controller class.
@@ -75,6 +75,14 @@ public class ASAddAppointmentFXMLController implements Initializable {
         setTimeComboBoxItems();
     }
     
+    /**
+     * Sets the appointment parameter for this scene, populating the user fields
+     * with the appropriate information from the Appointment instance and changing
+     * the text in the title label of the scene to "View/Modify Appointment Details."
+     * 
+     * @param appointment an Appointment instance representing the appointment
+     * to be viewed or modified
+     */
     public void setAppointment(Appointment appointment) {
         this.appointment = appointment;
         
@@ -90,6 +98,9 @@ public class ASAddAppointmentFXMLController implements Initializable {
         LocalDateTime date = start.toLocalDateTime();
         datePicker.setValue(LocalDate.from(date));
         
+        // Retrieve the time from the start variable, set AM or PM in the
+        // period variable based on the start hour, and modify the start hour
+        // to represent a 12-hour clock.
         int startHour = start.toLocalDateTime().getHour();
         String startPeriod = (startHour <= 12 ? "AM" : "PM" );
         startHour = (startHour <= 12 ? startHour : startHour - 12);
@@ -98,6 +109,7 @@ public class ASAddAppointmentFXMLController implements Initializable {
         startMinuteComboBox.setValue(start.toLocalDateTime().getMinute());
         startPeriodComboBox.setValue(startPeriod);
         
+        // Repeat the hour and period process for the end time.
         Timestamp end = appointment.getEnd();
         int endHour = end.toLocalDateTime().getHour();
         String endPeriod = (endHour <= 12 ? "AM" : "PM");
@@ -110,6 +122,14 @@ public class ASAddAppointmentFXMLController implements Initializable {
         sceneTitleLabel.setText("View/Modify Appointment Details");
     }
     
+    /**
+     * Segues back to the ASScheduleFXML scene, calling the saveAppointmentInfo
+     * method if the user clicked the saveButton instead of the cancelButton.
+     * 
+     * @param event the ActionEvent that triggers the segue, in this case, the
+     * user clicking either the save or cancel buttons.
+     * @throws IOException 
+     */
     @FXML private void segueToNewScene(ActionEvent event) throws IOException {
         if(event.getSource().equals(saveButton)) {
             saveAppointmentInfo();
@@ -124,6 +144,11 @@ public class ASAddAppointmentFXMLController implements Initializable {
         stage.show();
     }
     
+    /**
+     * Populates the customer combo box with the names of the customers in the
+     * customer table of the database. The method also sorts the customers
+     * alphabetically by first name.
+     */
     private void setCustomerComboBoxItems() {
         Collection<Customer> customers = AppointmentDatabase.getInstance().getCustomers().values();
         ObservableList<Customer> obsCustomers = FXCollections.observableArrayList(customers);
@@ -146,6 +171,11 @@ public class ASAddAppointmentFXMLController implements Initializable {
         });
     }
     
+    /**
+     * Sets the user choices for all of the time combo boxes. The user can choose
+     * integers 1 through 12 for the hours and 0 through 55 in increments of 5
+     * for the minutes.
+     */
     private void setTimeComboBoxItems() {
         Integer[] hours = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
         
@@ -168,6 +198,8 @@ public class ASAddAppointmentFXMLController implements Initializable {
                    if(item == null || empty) {
                        setText("");
                    } else {
+                       // Add the leading zero (0) to the minute value if it
+                       // is less than 10.
                        setText(item < 10 ? "0" + item : "" + item);
                    }
                }
@@ -188,6 +220,13 @@ public class ASAddAppointmentFXMLController implements Initializable {
         endPeriodComboBox.setItems(FXCollections.observableArrayList(period));
     }
     
+    /**
+     * If the appointment variable is null, saves the new appointment to the database
+     * and creates a new instance of an Appointment, adding it to the appointments
+     * HashMap in the AppointmentDatabase Singleton instance; else, modifies the
+     * existing appointment in both the database and the AppointmentDatabase Singleton
+     * instance.
+     */
     private void saveAppointmentInfo() {
         HashMap<String, Object> data = getHashMapForAppointmentCreation();
         
@@ -219,6 +258,13 @@ public class ASAddAppointmentFXMLController implements Initializable {
         }
     }
     
+    /**
+     * 
+     * @param hour an int representing the hour
+     * @param minute an int representing the minute
+     * @param period a String representing the period (AM or PM)
+     * @return a String representing the time in 12-hour format.
+     */
     private String getAdjustedTimeString(int hour, int minute, String period) {
         hour = period.equals("AM") ? hour : (hour + 12);
         String adjHour = (hour < 10 ? "0" + hour : "" + hour);
@@ -227,11 +273,30 @@ public class ASAddAppointmentFXMLController implements Initializable {
         return adjHour + ":" + adjMinute + ":00";
     }
     
+    /**
+     * Calculates and returns the timestamp code for the given date and time.
+     * 
+     * @param date a LocalDate instance representing the date to be encoded
+     * @param hour an int representing the hour to be encoded
+     * @param minute an int representing the minute to be encoded
+     * @param period a String representing the period to be encoded
+     * @return a String representing the timestamp to be stored in an RDBMS
+     */
     private String getTimestampCode(LocalDate date, int hour, int minute, String period) {
         return date.getYear() + "-" + date.getMonthValue() + "-" + date.getDayOfMonth()
                 + " " + getAdjustedTimeString(hour, minute, period);
     }
     
+    /**
+     * Creates and returns a HashMap that maps the user's entered data to a set of
+     * key-value pairs that match the columns in the appointment table of the database.
+     * The HashMap will consist of Strings mapped to Objects where the Strings are
+     * the names of the columns in the appointment table and the Objects are the
+     * values to be stored in those columns.
+     * 
+     * @return a HashMap of String-Object pairs representing the column-value
+     * pairs for this row in the appointment table of the database.
+     */
     private HashMap<String, Object> getHashMapForAppointmentCreation() {
         HashMap<String, Object> data = new HashMap<>();
         
