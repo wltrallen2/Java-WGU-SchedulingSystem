@@ -1,9 +1,9 @@
 # Java-WGU-SchedulingSystem
 WORK IN PROGRESS - Java application developed as part of the requirements for Western Governor's University C192 - Advanced Java Concepts
 
-**CURRENT STATUS NOTE:** _*The Login, Appointment, and Customer Scenes are implemented, including the ability to view, add, modify, and delete appointments and customers. Use the username test and password test to login. Additionally, the appointment table can be filtered and sorted.*_
+**CURRENT STATUS NOTE:** _*The Login, Appointment, and Customer Scenes are implemented, including the ability to view, add, modify, and delete appointments and customers. Use the username test and password test to login. Additionally, the appointment table can be filtered and sorted, and times are adjusted according to the user's local time zone and daylight savings time.*_
 
-**NEXT STEPS:** _*Refractor the filtering method using a switch statement to make the code more readable, and address the user time zones and daylight savings time.*_
+**NEXT STEPS:** _*Write exception controls for the remaining three exception cases.*_
 
 For this project, the student is required to implement the following requirements:
 
@@ -15,13 +15,13 @@ For this project, the student is required to implement the following requirement
 
 - [x] Provide the ability to view the calendar by month and by week.
 
-- [ ] Provide the ability to automatically adjust appointment times based on user time zones and daylight saving time.
+- [x] Provide the ability to automatically adjust appointment times based on user time zones and daylight saving time.
 
 - [ ] Write exception controls to prevent each of the following. You may use the same mechanism of exception control more than once, but you must incorporate at least  two different mechanisms of exception control.
   * scheduling an appointment outside business hours
   * scheduling overlapping appointments
   * entering nonexistent or invalid customer data
-  x entering an incorrect username and password
+  * COMPLETE - entering an incorrect username and password
 
 - [ ] Write two or more lambda expressions to make your program more efficient, justifying the use of each lambda expression with an in-line comment.
 

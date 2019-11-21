@@ -13,12 +13,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;
+import java.util.TimeZone;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -87,7 +89,7 @@ public class ASScheduleFXMLController implements Initializable {
     @FXML private TableColumn<Appointment, Customer> customerColumn;
     @FXML private TableColumn<Appointment, String> locationColumn;
     @FXML private TableColumn<Appointment, String> descriptionColumn;
-
+    
     /**
      * Initializes the controller class.
      * 
@@ -137,7 +139,7 @@ public class ASScheduleFXMLController implements Initializable {
                         setText(null);
                     } else {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-                        setText(item.toLocalDateTime().format(formatter));
+                        setText(getLocalDateTime(item).format(formatter));
                     }
                 }
             };
@@ -153,7 +155,7 @@ public class ASScheduleFXMLController implements Initializable {
                         setText(null);
                     } else {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
-                        setText(item.toLocalDateTime().format(formatter));
+                        setText(getLocalDateTime(item).format(formatter));
                     }
                 }
             };
@@ -169,7 +171,7 @@ public class ASScheduleFXMLController implements Initializable {
                         setText(null);
                     } else {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
-                        setText(item.toLocalDateTime().format(formatter));
+                        setText(getLocalDateTime(item).format(formatter));
                     }
                 }
             };
@@ -337,50 +339,47 @@ public class ASScheduleFXMLController implements Initializable {
      * user clicking and choosing a different value in the viewByComboBox
      */
     @FXML private void setAndFilterItems(ActionEvent event) {
-        FilteredList<Appointment> filteredItems = getItemsForAppointmentTable();
-                
-        Calendar targetCal = Calendar.getInstance();
-        int targetWeek = targetCal.get(Calendar.WEEK_OF_YEAR);
-        int targetMonth = targetCal.get(Calendar.MONTH);
-        int targetYear = targetCal.get(Calendar.YEAR);
-        
-        Calendar cal = Calendar.getInstance();
         ViewOption v = viewByComboBox.getValue();
-        if (v.equals(ViewOption.THIS_WEEKS)) {
-            filteredItems = filteredItems.filtered(a -> {
-                cal.setTime(a.getStart());
-                int week = cal.get(Calendar.WEEK_OF_YEAR);
-                int year = cal.get(Calendar.YEAR);
-                return targetYear == year && targetWeek == week;
-                });
-        } else if (v.equals(ViewOption.NEXT_WEEKS)) {
-            filteredItems = filteredItems.filtered(a -> {
-                cal.setTime(a.getStart());
-                int week = cal.get(Calendar.WEEK_OF_YEAR);
-                int year = cal.get(Calendar.YEAR);
-                return (targetYear == year && targetWeek + 1 == week)
-                    || (targetYear + 1 == year && week == 1);
-            });
-        } else if (v.equals(ViewOption.THIS_MONTHS)) {
-            filteredItems = filteredItems.filtered(a -> {
-                cal.setTime(a.getStart());
-                int month = cal.get(Calendar.MONTH);
-                int year = cal.get(Calendar.YEAR);
-                return targetYear == year && targetMonth == month;
-            });
-        } else if (v.equals(ViewOption.NEXT_MONTHS)) {
-            filteredItems = filteredItems.filtered(a -> {
-                cal.setTime(a.getStart());
-                int month = cal.get(Calendar.MONTH);
-                int year = cal.get(Calendar.YEAR);
-                return (targetYear == year && targetMonth + 1 == month)
-                        || (targetYear + 1 == year && month == 1);
-            });
-        }
+        Calendar targetCal = Calendar.getInstance();
         
+        int targetWeek = targetCal.get(Calendar.WEEK_OF_YEAR)
+                + (v.equals(ViewOption.NEXT_WEEKS) ? 1 : 0);
+        int targetMonth = targetCal.get(Calendar.MONTH)
+                + (v.equals(ViewOption.NEXT_MONTHS) ? 1 : 0);
+        int targetYear = targetCal.get(Calendar.YEAR);
+
+        Calendar cal = Calendar.getInstance();
+        
+        FilteredList<Appointment> filteredItems = getItemsForAppointmentTable();
+        filteredItems = filteredItems.filtered(a -> { 
+            cal.setTime(a.getStart());
+            if(targetYear == cal.get(Calendar.YEAR)) {
+                if(v.equals(ViewOption.THIS_WEEKS) || v.equals(ViewOption.NEXT_WEEKS)) {
+                    return targetWeek == cal.get(Calendar.WEEK_OF_YEAR);
+                } else if (v.equals(ViewOption.THIS_MONTHS) || v.equals(ViewOption.NEXT_MONTHS)) {
+                    return targetMonth == cal.get(Calendar.MONTH);
+                }
+            }
+            
+            // if none of the four filtering options are picked, then all records
+            // should be displayed.
+            return true;
+        });
+
         SortedList<Appointment> sortedItems = new SortedList<>(filteredItems);
         sortedItems.comparatorProperty().bind(appointmentTable.comparatorProperty());
         
         appointmentTable.setItems(sortedItems);
+    }
+    
+    /**
+     * Converts the timestamp to the local time using the systems default zone id.
+     * 
+     * @param timestamp a Timestamp instance representing the timestamp to be converted
+     * @return a ZonedDateTime instance representing the converted timestamp
+     */
+    private ZonedDateTime getLocalDateTime(Timestamp timestamp) {
+        ZonedDateTime zdt = ZonedDateTime.of(timestamp.toLocalDateTime(), ZoneId.of("GMT"));
+        return zdt.withZoneSameInstant(ZoneId.systemDefault());
     }
 }

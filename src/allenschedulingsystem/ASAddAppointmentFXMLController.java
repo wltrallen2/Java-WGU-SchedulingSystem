@@ -14,6 +14,8 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.ResourceBundle;
@@ -63,7 +65,6 @@ public class ASAddAppointmentFXMLController implements Initializable {
     @FXML private ComboBox<String> endPeriodComboBox;
     
     private Appointment appointment;
-    //TODO: NEXT ===>>> Continue with javadoc from this point.
 
     /**
      * Initializes the controller class.
@@ -323,9 +324,23 @@ public class ASAddAppointmentFXMLController implements Initializable {
         String startTimeCode = getTimestampCode(date, startHour, startMinute, startPeriod);
         String endTimeCode = getTimestampCode(date, endHour, endMinute, endPeriod);
         
-        data.put(Appointment.START_TIME, Timestamp.valueOf(startTimeCode));
-        data.put(Appointment.END_TIME, Timestamp.valueOf(endTimeCode));
+        data.put(Appointment.START_TIME, getGMTTimestampFromLocalTimeCodeString(startTimeCode));
+        data.put(Appointment.END_TIME, getGMTTimestampFromLocalTimeCodeString(endTimeCode));
 
         return data;
+    }
+    
+    /**
+     * Adjusts the local time code String to Greenwich Mean Time assuming that the
+     * user has entered their appointment time using their own local time zone.
+     * 
+     * @param localTimeCode a String instance representing the data that the user entered
+     * @return a Timestamp with the date and time adjusted to Greenwich Mean Time.
+     */
+    private Timestamp getGMTTimestampFromLocalTimeCodeString (String localTimeCode) {
+        Timestamp localTime = Timestamp.valueOf(localTimeCode);
+        ZonedDateTime zdtLocal = ZonedDateTime.of(localTime.toLocalDateTime(), ZoneId.systemDefault());
+        ZonedDateTime zdt = zdtLocal.withZoneSameInstant(ZoneId.of("GMT"));
+        return Timestamp.valueOf(zdt.toLocalDateTime());
     }
 }
