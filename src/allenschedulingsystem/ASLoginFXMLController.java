@@ -31,6 +31,12 @@ import javafx.stage.Stage;
  */
 public class ASLoginFXMLController implements Initializable {
     
+    private class InvalidUserException extends Exception {
+        public InvalidUserException(String message) {
+            super(message);
+        }
+    }
+    
     @FXML private Label errorLabel;
     
     @FXML private TextField userNameTextField;
@@ -38,6 +44,15 @@ public class ASLoginFXMLController implements Initializable {
     
     @FXML private Button button;
     
+    /**
+     * Initializes the controller class. Sets the errorLabel to invisible,
+     * hiding the error message from the user.
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        errorLabel.visibleProperty().set(false);
+    }    
+        
     /**
      * nextButtonPressed checks the user name and password provided in the 
      * appropriate text fields against the MySQL connected database. If the
@@ -55,26 +70,26 @@ public class ASLoginFXMLController implements Initializable {
         String username = userNameTextField.getText();
         String password = passwordField.getText();
         
-        if (DBQuery.fetchUserId(username, password) != -1) {
+        try {
+            verifyUser(username, password);
             AppointmentDatabase.init(username);
             loadScheduleFXMLSceneWithUserName(event, username);
-        } else {
+        } catch(InvalidUserException ex) {
+            System.out.println(ex);
+            
             checkErrorLabelLanguage();
             errorLabel.visibleProperty().set(true);
             userNameTextField.setText("");
             passwordField.setText("");
         }
     }
-
-    /**
-     * Initializes the controller class. Sets the errorLabel to invisible,
-     * hiding the error message from the user.
-     */
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        errorLabel.visibleProperty().set(false);
-    }    
     
+    private void verifyUser(String username, String password) throws InvalidUserException {
+        if(DBQuery.fetchUserId(username, password) == -1) {
+            throw new InvalidUserException("Invalid username/password combination.");
+        }
+    }
+
     /**
      * Loads the ASScheduleFXML scene into the current stage.
      * 

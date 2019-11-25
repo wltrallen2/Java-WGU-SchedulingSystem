@@ -11,6 +11,7 @@ import Model.AppointmentDatabase;
 import Model.City;
 import Model.Country;
 import Model.Customer;
+import Model.MissingInformationException;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -27,6 +28,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -106,17 +109,23 @@ public class ASAddCustomerFXMLController implements Initializable {
      * @throws IOException 
      */    
     @FXML private void segueToNewScene (ActionEvent event) throws IOException {
-        if(event.getSource().equals(saveButton)) {
-            saveCustomerInformation();
+        try {
+            if(event.getSource().equals(saveButton)) {
+                saveCustomerInformation();
+            }
+
+            String filename = "ASCustomerFXML.fxml";
+            Parent parent = FXMLLoader.load(getClass().getResource(filename));
+
+            Scene scene = new Scene(parent);
+            Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch(MissingInformationException ex) {
+            System.out.println(ex);
+            Alert alert = new Alert(AlertType.ERROR, ex.getMessage());
+            alert.showAndWait();
         }
-        
-        String filename = "ASCustomerFXML.fxml";
-        Parent parent = FXMLLoader.load(getClass().getResource(filename));
-        
-        Scene scene = new Scene(parent);
-        Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
-        stage.setScene(scene);
-        stage.show();
     }
  
     /** Retrieves the information in the form and saves it to a HashMap, mapping
@@ -149,7 +158,9 @@ public class ASAddCustomerFXMLController implements Initializable {
      * Any instances which are not unique are not overwritten unless the information
      * has been altered in some way.
      */
-    private void saveCustomerInformation() {
+    private void saveCustomerInformation() throws MissingInformationException {
+        verifyFormIsComplete();
+        
         HashMap<String, String> info = getFormInformation();
         
         Country country = AppointmentDatabase.getInstance()
@@ -181,6 +192,40 @@ public class ASAddCustomerFXMLController implements Initializable {
                 System.out.println("Exception in ASAddCustomerFXMLController in saveCustomerInformation method.");
                 System.out.println(ex);
             }
+        }
+    }
+    
+    private void verifyFormIsComplete() throws MissingInformationException {
+        String missingInfo = "";
+        
+        if(nameTextField.getText().equals("")) {
+            missingInfo += "Please enter a valid customer name.\n";
+        }
+        
+        if(address1TextField.getText().equals("")) {
+            missingInfo += "Please enter a valid address.\n";
+        }
+        
+        if(cityComboBox.getSelectionModel().getSelectedItem() == null
+                || cityComboBox.getValue().equals("")) {
+            missingInfo += "Please choose or enter a valid city.\n";
+        }
+        
+        if(countryComboBox.getSelectionModel().getSelectedItem() == null
+                || countryComboBox.getValue().equals("")) {
+            missingInfo += "Please choose or enter a valid country.\n";
+        }
+        
+        if(postalCodeTextField.getText().equals("")) {
+            missingInfo += "Please enter a valid postal code.\n";
+        }
+        
+        if(phoneTextField.getText().equals("")) {
+            missingInfo += "Please enter a valid phone number.\n";
+        }
+        
+        if(!missingInfo.equals("")) {
+            throw new MissingInformationException(missingInfo);
         }
     }
             

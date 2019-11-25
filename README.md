@@ -17,15 +17,15 @@ For this project, the student is required to implement the following requirement
 
 - [x] Provide the ability to automatically adjust appointment times based on user time zones and daylight saving time.
 
-- [ ] Write exception controls to prevent each of the following. You may use the same mechanism of exception control more than once, but you must incorporate at least  two different mechanisms of exception control.
-  * scheduling an appointment outside business hours
-  * scheduling overlapping appointments
-  * entering nonexistent or invalid customer data
+- [x] Write exception controls to prevent each of the following. You may use the same mechanism of exception control more than once, but you must incorporate at least  two different mechanisms of exception control.
+  * COMPLETE - scheduling an appointment outside business hours
+  * COMPLETE - scheduling overlapping appointments
+  * COMPLETE - entering nonexistent or invalid customer data
   * COMPLETE - entering an incorrect username and password
 
-- [ ] Write two or more lambda expressions to make your program more efficient, justifying the use of each lambda expression with an in-line comment.
+- [x] Write two or more lambda expressions to make your program more efficient, justifying the use of each lambda expression with an in-line comment.
 
-- [ ] Write code to provide an alert if there is an appointment within 15 minutes of the user’s log-in.
+- [x] Write code to provide an alert if there is an appointment within 15 minutes of the user’s log-in.
 
 - [ ] Provide the ability to generate each  of the following reports:
   * number of appointment types by month

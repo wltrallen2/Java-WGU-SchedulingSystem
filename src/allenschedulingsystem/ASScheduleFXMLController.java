@@ -13,12 +13,15 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 import javafx.application.Platform;
@@ -33,7 +36,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -113,7 +119,8 @@ public class ASScheduleFXMLController implements Initializable {
         populateCustomerColumn();
         populateOtherStringColumns();
         
-        setAndFilterItems(null);        
+        setAndFilterItems(null);
+        checkForImpendingAppointment();
     }
     
     /**
@@ -129,6 +136,13 @@ public class ASScheduleFXMLController implements Initializable {
         endColumn.setCellValueFactory(
             new PropertyValueFactory<>("end"));
 
+        /*
+         * The use of the lambda statement in the code below allowed me to forgo
+         * the creation of a separate CellFactory class that would have only been
+         * utilized in this one place in my program and that has only the one method.
+         * It also allowed me to clean up my code and make it more readable by allowing
+         * me to forgo the creation of an anonymous class.
+        */
         dateColumn.setCellFactory(column -> {
             return new TableCell<Appointment, Timestamp>() {
                 @Override
@@ -256,7 +270,7 @@ public class ASScheduleFXMLController implements Initializable {
         viewByComboBox.setButtonCell(cellFactory.call(null));
         
         viewByComboBox.setItems(FXCollections.observableArrayList(VIEW_BY_OPTIONS));
-        viewByComboBox.setValue(ViewOption.ALL);
+        viewByComboBox.getSelectionModel().select(ViewOption.ALL);
     }
         
     /**
@@ -327,7 +341,7 @@ public class ASScheduleFXMLController implements Initializable {
         Appointment appointment = appointmentTable.getSelectionModel().getSelectedItem();
         if(appointment != null) {
             AppointmentDatabase.getInstance().removeApointment(appointment);
-            loadAndPopulateAppointmentTable();
+            setAndFilterItems(null);
         }
     }
     
@@ -339,7 +353,7 @@ public class ASScheduleFXMLController implements Initializable {
      * user clicking and choosing a different value in the viewByComboBox
      */
     @FXML private void setAndFilterItems(ActionEvent event) {
-        ViewOption v = viewByComboBox.getValue();
+        ViewOption v = viewByComboBox.getSelectionModel().getSelectedItem();
         Calendar targetCal = Calendar.getInstance();
         
         int targetWeek = targetCal.get(Calendar.WEEK_OF_YEAR)
@@ -350,6 +364,14 @@ public class ASScheduleFXMLController implements Initializable {
 
         Calendar cal = Calendar.getInstance();
         
+        /*
+         * The use of the lambda expression in the code below allowed me to utilize
+         * the filtered instance method for a FilteredList by providing the
+         * implementation for the abstract method in the Predicate<T> functional
+         * interface. Without the lambda expression, I would have needed to manually
+         * iterate through the items in the appointments list using a for each loop
+         * or an iterator. 
+        */
         FilteredList<Appointment> filteredItems = getItemsForAppointmentTable();
         filteredItems = filteredItems.filtered(a -> { 
             cal.setTime(a.getStart());
@@ -381,5 +403,26 @@ public class ASScheduleFXMLController implements Initializable {
     private ZonedDateTime getLocalDateTime(Timestamp timestamp) {
         ZonedDateTime zdt = ZonedDateTime.of(timestamp.toLocalDateTime(), ZoneId.of("GMT"));
         return zdt.withZoneSameInstant(ZoneId.systemDefault());
+    }
+    
+    private void checkForImpendingAppointment() {
+        FilteredList<Appointment> filteredAppointments = getItemsForAppointmentTable();
+        
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp nowPlusFifteen = Timestamp.valueOf(LocalDateTime.now().plusMinutes(15));
+        
+        Iterator<Appointment> it = filteredAppointments.iterator();
+        boolean appointmentFound = false;
+        while(!appointmentFound && it.hasNext()) {
+            Appointment a = it.next();
+            Timestamp start = Timestamp.valueOf(getLocalDateTime(a.getStart()).toLocalDateTime());
+            if(start.after(now) && start.before(nowPlusFifteen)) {
+                String message = "You have an appointment starting at "
+                        + start.toLocalDateTime().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)) + ".";
+                Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
+                alert.setHeaderText("Upcoming Appointment");
+                alert.showAndWait();
+            }
+        }
     }
 }
