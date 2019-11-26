@@ -6,7 +6,7 @@
  */
 package allenschedulingsystem;
 
-import Model.DBConnection;
+import Utilities.DBConnection;
 import java.sql.SQLException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -32,7 +32,7 @@ public class AllenSchedulingSystem extends Application {
     public void start(Stage stage) throws Exception {
         DBConnection.makeConnection();
 
-        Parent root = FXMLLoader.load(getClass().getResource("ASLoginFXML.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/Views/ASLoginFXML.fxml"));
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();

@@ -6,6 +6,7 @@
  */
 package Model;
 
+import Utilities.DBQuery;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
