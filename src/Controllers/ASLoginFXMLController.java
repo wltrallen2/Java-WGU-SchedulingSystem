@@ -8,9 +8,15 @@ package Controllers;
 
 import Model.AppointmentDatabase;
 import Utilities.DBQuery;
+import Utilities.StringUtil;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -86,7 +92,49 @@ public class ASLoginFXMLController implements Initializable {
     
     private void verifyUser(String username, String password) throws InvalidUserException {
         if(DBQuery.fetchUserId(username, password) == -1) {
+            logUser(username, false);
             throw new InvalidUserException("Invalid username/password combination.");
+        }
+        
+        logUser(username, true);
+    }
+    
+    private void logUser(String username, boolean success) {
+        String logLine = StringUtil.rpad(username, 30, '-');
+        logLine += StringUtil.lpad(Timestamp.valueOf(LocalDateTime.now()).toString(), 25, '-');
+        logLine += (success ? "  SUCCESS" : "  FAIL");
+        
+        File file = new File("log.txt");
+        
+        try {
+            boolean newFile = false;
+            if(!file.exists()) {
+                file.createNewFile();
+                newFile = true;
+            }
+            
+            BufferedWriter out = new BufferedWriter(new FileWriter(file, true));
+            if(newFile) {
+                out.append("USER-TIMESTAMP LOG");
+                out.newLine();
+                
+                out.append(StringUtil.rpad("", 55, '-'));
+                out.newLine();
+                out.newLine();
+                
+                out.append(StringUtil.rpad("USERNAME", 30, ' '));
+                out.append(StringUtil.lpad("TIMESTAMP", 25, ' '));
+                out.newLine();
+                out.newLine();
+            }
+            
+            out.append(logLine);
+            out.newLine();
+            
+            out.close();
+        } catch(IOException ex) {
+            System.out.println("IOException in ASLoginFXMLController.logUser(String, boolean).");
+            System.out.println(ex);
         }
     }
 

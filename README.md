@@ -1,9 +1,7 @@
 # Java-WGU-SchedulingSystem
 WORK IN PROGRESS - Java application developed as part of the requirements for Western Governor's University C192 - Advanced Java Concepts
 
-**CURRENT STATUS NOTE:** _*The Login, Appointment, and Customer Scenes are implemented, including the ability to view, add, modify, and delete appointments and customers. Use the username test and password test to login. Additionally, the appointment table can be filtered and sorted, and times are adjusted according to the user's local time zone and daylight savings time. There are exception controls in place to prevent the use cases listed in the details below, and the three required reports have been implemented.*_
-
-**NEXT STEPS:** _*Implement the user log as described below. Finish javadoc from recent updates.*_
+**CURRENT STATUS NOTE:** _*All functionality as described below is now complete. Use the username test and password test to login. However, I am still in the process of finishing the javadoc for clarity and any future improvements. There are also opportunities for refractoring that are marked that would help improve organization and/or clarity of intent in the code.*_
 
 For this project, the student is required to implement the following requirements:
 
@@ -32,4 +30,4 @@ For this project, the student is required to implement the following requirement
   * COMPLETE - the schedule for each consultant
   * COMPLETE - one additional report of your choice
 
-- [ ] Provide the ability to track user activity by recording timestamps for user log-ins in a .txt file. Each new record should be appended to the log file, if the file already exists.
+- [x] Provide the ability to track user activity by recording timestamps for user log-ins in a .txt file. Each new record should be appended to the log file, if the file already exists.

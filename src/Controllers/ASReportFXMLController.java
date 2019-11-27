@@ -10,6 +10,7 @@ import Model.Appointment;
 import Model.AppointmentDatabase;
 import Model.Customer;
 import Utilities.ASForm;
+import Utilities.StringUtil;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -98,11 +99,11 @@ public class ASReportFXMLController implements Initializable {
         
         final int FIRST_COL_PAD = 49;
         final int SECOND_COL_PAD = 22;
-        String reportText = rpad("Appointment Type", FIRST_COL_PAD, ' ') + "Number of Appointments\n";
-        reportText += rpad("", FIRST_COL_PAD + SECOND_COL_PAD, '-') + "\n";
+        String reportText = StringUtil.rpad("Appointment Type", FIRST_COL_PAD, ' ') + "Number of Appointments\n";
+        reportText += StringUtil.rpad("", FIRST_COL_PAD + SECOND_COL_PAD, '-') + "\n";
         for(String type : sortedItems) {
-            reportText += rpad(type, FIRST_COL_PAD, '.');
-            reportText += lpad(typeMap.get(type) + "", SECOND_COL_PAD, '.');
+            reportText += StringUtil.rpad(type, FIRST_COL_PAD, '.');
+            reportText += StringUtil.lpad(typeMap.get(type) + "", SECOND_COL_PAD, '.');
             reportText += "\n";
         }
 
@@ -155,13 +156,13 @@ public class ASReportFXMLController implements Initializable {
         
         final int FIRST_COL_PAD = 49;
         final int SECOND_COL_PAD = 22;
-        String reportText = rpad("Customer Name", FIRST_COL_PAD, ' ');
-        reportText += lpad("Phone Number", SECOND_COL_PAD, ' ') + "\n";
-        reportText += rpad("", FIRST_COL_PAD + SECOND_COL_PAD, '-') + "\n";
+        String reportText = StringUtil.rpad("Customer Name", FIRST_COL_PAD, ' ');
+        reportText += StringUtil.lpad("Phone Number", SECOND_COL_PAD, ' ') + "\n";
+        reportText += StringUtil.rpad("", FIRST_COL_PAD + SECOND_COL_PAD, '-') + "\n";
         
         for(Customer c : customers) {
-            reportText += rpad(c.getCustomerName(), FIRST_COL_PAD, '.');
-            reportText += lpad(c.getAddress().getPhone(), SECOND_COL_PAD, '.');
+            reportText += StringUtil.rpad(c.getCustomerName(), FIRST_COL_PAD, '.');
+            reportText += StringUtil.lpad(c.getAddress().getPhone(), SECOND_COL_PAD, '.');
             reportText += "\n";
         }
         
@@ -171,34 +172,4 @@ public class ASReportFXMLController implements Initializable {
     private void runNoReportSelected() {
         textArea.setText("No report selected.");
     }
-    
-    private String rpad(String s, int numToPad, char padChar) {
-        int numPaddedChars = numToPad - s.length();
-        if(numPaddedChars > 0) {
-            for (int i = 0; i < numPaddedChars; i++) {
-                s += padChar;
-            }
-        } else {
-            s = s.substring(0, numToPad);
-        }
-        
-        return s;
-    }
-    
-    private String lpad(String s, int numToPad, char padChar) {
-        String paddedString = "";
-        
-        int numPaddedChars = numToPad - s.length();
-        if(numPaddedChars > 0) {
-            for (int i = 0; i < numPaddedChars; i++) {
-                paddedString += padChar;
-            }
-            paddedString += s;
-        } else {
-            paddedString = s.substring(0, numToPad);
-        }
-        
-        return paddedString;
-    }
-    
 }
