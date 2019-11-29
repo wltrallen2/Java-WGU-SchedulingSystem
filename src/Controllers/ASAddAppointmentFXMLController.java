@@ -511,7 +511,8 @@ public class ASAddAppointmentFXMLController implements Initializable {
                     Timestamp thisStart = getLocalTimestampFromGMTTimestamp(a.getStart());
                     Timestamp thisEnd = getLocalTimestampFromGMTTimestamp(a.getEnd());
                     
-                    if(startTimestamp.after(thisStart) && startTimestamp.before(thisEnd)
+                    if(startTimestamp.equals(thisStart) || endTimestamp.equals(thisEnd)
+                            || startTimestamp.after(thisStart) && startTimestamp.before(thisEnd)
                             || endTimestamp.after(thisStart) && endTimestamp.before(thisEnd)
                             || startTimestamp.before(thisStart) && endTimestamp.after(thisEnd)) {
                         return true;
@@ -524,15 +525,20 @@ public class ASAddAppointmentFXMLController implements Initializable {
             DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
             String apptList = "";
             for(Appointment a : filteredAppointments) {
-                Timestamp startTime = getLocalTimestampFromGMTTimestamp(a.getStart());
-                Timestamp endTime = getLocalTimestampFromGMTTimestamp(a.getEnd());
-                apptList += a.getTitle() + ", " 
-                        + startTime.toLocalDateTime().format(formatter) + "-"
-                        + endTime.toLocalDateTime().format(formatter) + "\n";
+                if(!a.equals(appointment)) {
+                    Timestamp startTime = getLocalTimestampFromGMTTimestamp(a.getStart());
+                    Timestamp endTime = getLocalTimestampFromGMTTimestamp(a.getEnd());
+                    apptList += a.getTitle() + ", " 
+                            + startTime.toLocalDateTime().format(formatter) + "-"
+                            + endTime.toLocalDateTime().format(formatter) + "\n";
+                }
             }
-            message += "As scheduled, the appointment overlaps the following already"
-                    + " scheduled appointments:\n\n";
-            message += apptList + "\n";
+            
+            if(!apptList.equals("")) {
+                message += "As scheduled, the appointment overlaps the following already"
+                        + " scheduled appointments:\n\n";
+                message += apptList + "\n";
+            }
         }
         
         if(!message.equals("")) {

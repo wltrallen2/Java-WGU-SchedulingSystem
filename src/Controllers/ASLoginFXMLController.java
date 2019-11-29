@@ -56,6 +56,11 @@ public class ASLoginFXMLController implements Initializable {
     /***************************************************************************
      * PARAMETERS
      **************************************************************************/
+    @FXML private Label companyLabel;
+    @FXML private Label titleLabel;
+    @FXML private Label instructionLabel;
+    @FXML private Label usernameLabel;
+    @FXML private Label passwordLabel;
     @FXML private Label errorLabel;
     
     @FXML private TextField userNameTextField;
@@ -73,6 +78,7 @@ public class ASLoginFXMLController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        checkLoginSceneLanguage();
         errorLabel.visibleProperty().set(false);
     }    
 
@@ -104,7 +110,6 @@ public class ASLoginFXMLController implements Initializable {
         } catch(InvalidUserException ex) {
             System.out.println(ex);
             
-            checkErrorLabelLanguage();
             errorLabel.visibleProperty().set(true);
             userNameTextField.setText("");
             passwordField.setText("");
@@ -119,15 +124,39 @@ public class ASLoginFXMLController implements Initializable {
      * Checks the current country for the user, and changes the error message
      * to French if the user is in France, or to English otherwise.
      */
-    private void checkErrorLabelLanguage() {
+    private void checkLoginSceneLanguage() {
         Locale currentLocale = Locale.getDefault();
         if(currentLocale.getCountry().equals("FR")) {
+            companyLabel.setText("ABC Système de Planification");
+            titleLabel.setText("Connexion Système");
+            instructionLabel.setText("Veuillez entrer votre nom d'utilisateur "
+                    + "et votre mot de passe ci-dessous:");
+            usernameLabel.setText("Nom d'Utilisateur:");
+            passwordLabel.setText("Mot de Passe:");
             errorLabel.setText("Le nom d'utilisateur et le mot de passe que " +
                                 "vous avez entrés ne correspondent pas à nos " +
                                 "enregistrements. Veuillez réessayer.");
+            button.setText("S'identifier");
+        } else if(currentLocale.getCountry().equals("ES")) {
+            companyLabel.setText("ABC Sistema de Programación");
+            titleLabel.setText("Sistema de Inicio de Sesión");
+            instructionLabel.setText("Por favor ingrese su nombre de usuario y"
+                    + " contraseña en la parte de abajo:");
+            usernameLabel.setText("Nombre de Usuario:");
+            passwordLabel.setText("Contraseña:");
+            errorLabel.setText("El nombre de usuario y la contraseña que ingresó"
+                    + " no coinciden con nuestros registros. Inténtalo de nuevo.");
+            button.setText("Iniciar Sesión");
+
         } else {
+            companyLabel.setText("ABC Scheduling System");
+            titleLabel.setText("System Login");
+            instructionLabel.setText("Please enter your username and password below");
+            usernameLabel.setText("Username:");
+            passwordLabel.setText("Password:");
             errorLabel.setText("The user name and password you entered does " +
                     "not match our records. Please try again.");
+            button.setText("Log In");
         }
     }
 
