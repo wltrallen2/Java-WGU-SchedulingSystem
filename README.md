@@ -1,7 +1,7 @@
 # Java-WGU-SchedulingSystem
-WORK IN PROGRESS - Java application developed as part of the requirements for Western Governor's University C192 - Advanced Java Concepts
+Java application developed as part of the requirements for Western Governor's University C192 - Advanced Java Concepts
 
-**CURRENT STATUS NOTE:** _*All functionality as described below is now complete. Use the username test and password test to login. However, I am still in the process of finishing the javadoc for clarity and any future improvements. There are also opportunities for refractoring that are marked that would help improve organization and/or clarity of intent in the code.*_
+**NOTE:** _*All functionality and documentation as described below is now complete. Use the username test and password test to login. However, there are also opportunities for refractoring that are marked that would help improve organization and/or clarity of intent in the code.*_
 
 For this project, the student is required to implement the following requirements:
 

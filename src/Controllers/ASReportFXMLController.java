@@ -45,9 +45,16 @@ import javafx.stage.Stage;
  */
 public class ASReportFXMLController implements Initializable {
 
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     @FXML Label reportTitleLabel;
     @FXML Button backButton;
     @FXML TextArea textArea;
+
+    /***************************************************************************
+     * INITIALIZER
+     **************************************************************************/
     
     /**
      * Initializes the controller class.
@@ -56,7 +63,17 @@ public class ASReportFXMLController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
     }   
-    
+
+    /***************************************************************************
+     * SETTER
+     **************************************************************************/
+    /**
+     * Sets the title of the report scene and calls the method that runs
+     * the specified report.
+     * 
+     * @param type an instance of the ASForm enum that represents the type of
+     * report to run.
+     */
     public void setFormType(ASForm type) {
         reportTitleLabel.setText(type.getTitle());
         
@@ -67,7 +84,18 @@ public class ASReportFXMLController implements Initializable {
             default : runNoReportSelected();
         }
     }
-    
+
+    /***************************************************************************
+     * EVENT HANDER
+     **************************************************************************/
+ 
+    /**
+     * Segues back to the previous scene, in this case, the ASReportMenuFXMLController.
+     * 
+     * @param event the ActionEvent that triggered the segue, in this case, the user
+     * hitting the "Back" button.
+     * @throws IOException 
+     */
     @FXML void segueToNewScene(ActionEvent event) throws IOException {
         Parent parent = FXMLLoader.load(getClass().getResource("/Views/ASReportMenuFXML.fxml"));
         Scene scene = new Scene(parent);
@@ -76,40 +104,15 @@ public class ASReportFXMLController implements Initializable {
         stage.setScene(scene);
         stage.show();
     }
-    
-    private void runTypeSummary() {
-        Collection<Appointment> appointments = AppointmentDatabase.getInstance().getAppointments().values();
-        HashMap<String, Integer> typeMap = new HashMap<>();
-        
-        for(Appointment a : appointments) {
-            String type = a.getType();
-            int n;
-            if(!typeMap.keySet().contains(type)) {
-                n = 1;
-            } else {
-                n = typeMap.get(type) + 1;
-            }
-            
-            typeMap.put(type, n);
-        }
-        
-        ObservableList<String> types = FXCollections.observableArrayList(typeMap.keySet());
-        SortedList<String> sortedItems = new SortedList<>(types);
-        sortedItems = sortedItems.sorted((s1, s2) -> s1.toUpperCase().compareTo(s2.toUpperCase()));
-        
-        final int FIRST_COL_PAD = 49;
-        final int SECOND_COL_PAD = 22;
-        String reportText = StringUtil.rpad("Appointment Type", FIRST_COL_PAD, ' ') + "Number of Appointments\n";
-        reportText += StringUtil.rpad("", FIRST_COL_PAD + SECOND_COL_PAD, '-') + "\n";
-        for(String type : sortedItems) {
-            reportText += StringUtil.rpad(type, FIRST_COL_PAD, '.');
-            reportText += StringUtil.lpad(typeMap.get(type) + "", SECOND_COL_PAD, '.');
-            reportText += "\n";
-        }
 
-        textArea.setText(reportText);
-    }
+    /***************************************************************************
+     * PRIVATE HELPER METHODS - REPORTS
+     **************************************************************************/
     
+    /**
+     * Runs a report that lists the user's schedule. The report lists only future
+     * appointments.
+     */
     private void runConsultantSchedule() {
         ObservableList<Appointment> appointments = FXCollections
                 .observableArrayList(AppointmentDatabase.getInstance().getAppointments().values());
@@ -146,6 +149,9 @@ public class ASReportFXMLController implements Initializable {
         textArea.setText(reportText);
     } 
     
+    /**
+     * Runs a report that lists all customers and their phone numbers.
+     */
     private void runCustomerPhones() {
         SortedList<Customer> customers = FXCollections
                 .observableArrayList(AppointmentDatabase.getInstance().getCustomers().values())
@@ -169,7 +175,46 @@ public class ASReportFXMLController implements Initializable {
         textArea.setText(reportText);
     }
     
+    /**
+     * Prints the text "No Report Selected" to the textArea.
+     */
     private void runNoReportSelected() {
         textArea.setText("No report selected.");
+    }
+    
+    /**
+     * Runs a report that lists the types of meetings and how many of each type
+     */
+    private void runTypeSummary() {
+        Collection<Appointment> appointments = AppointmentDatabase.getInstance().getAppointments().values();
+        HashMap<String, Integer> typeMap = new HashMap<>();
+        
+        for(Appointment a : appointments) {
+            String type = a.getType();
+            int n;
+            if(!typeMap.keySet().contains(type)) {
+                n = 1;
+            } else {
+                n = typeMap.get(type) + 1;
+            }
+            
+            typeMap.put(type, n);
+        }
+        
+        ObservableList<String> types = FXCollections.observableArrayList(typeMap.keySet());
+        SortedList<String> sortedItems = new SortedList<>(types);
+        sortedItems = sortedItems.sorted((s1, s2) -> s1.toUpperCase().compareTo(s2.toUpperCase()));
+        
+        final int FIRST_COL_PAD = 49;
+        final int SECOND_COL_PAD = 22;
+        String reportText = StringUtil.rpad("Appointment Type", FIRST_COL_PAD, ' ') + "Number of Appointments\n";
+        reportText += StringUtil.rpad("", FIRST_COL_PAD + SECOND_COL_PAD, '-') + "\n";
+        for(String type : sortedItems) {
+            reportText += StringUtil.rpad(type, FIRST_COL_PAD, '.');
+            reportText += StringUtil.lpad(typeMap.get(type) + "", SECOND_COL_PAD, '.');
+            reportText += "\n";
+        }
+
+        textArea.setText(reportText);
     }
 }

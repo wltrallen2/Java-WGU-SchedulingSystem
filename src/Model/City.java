@@ -16,6 +16,10 @@ import java.util.HashMap;
  * @author walterallen
  */
 public class City {
+    
+    /***************************************************************************
+     * CONSTANTS
+     **************************************************************************/
     public static final String TABLE_NAME = "city";
     public static final String CITY_ID = "cityId";
     public static final String CITY_NAME = "city";
@@ -25,6 +29,9 @@ public class City {
     public static final String LAST_UPDATE = "lastUpdate";
     public static final String LAST_UPDATE_BY = "lastUpdateBy";
     
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     private int cityId;
     private String city;
     private Country country;
@@ -33,6 +40,10 @@ public class City {
     private Timestamp lastUpdate;
     private String lastUpdateBy;
     
+    /***************************************************************************
+     * CONSTRUCTOR
+     **************************************************************************/
+
     /**
      * Creates an instance of a City object based on the uCertify database
      * model.

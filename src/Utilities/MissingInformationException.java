@@ -8,10 +8,19 @@ package Utilities;
  */
 
 /**
- *
+ * Exception representing the concept that the user has failed to enter
+ * required information.
+ * 
  * @author walterallen
  */
 public class MissingInformationException extends Exception {
+    
+    /**
+     * Constructor class
+     * 
+     * @param message a String representing the message that is to be passed
+     * to the method that throws the exception.
+     */
     public MissingInformationException(String message) {
         super(message);
     }

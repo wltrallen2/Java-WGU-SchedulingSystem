@@ -44,6 +44,9 @@ import javafx.stage.Stage;
  */
 public class ASAddCustomerFXMLController implements Initializable {
     
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     @FXML private Label sceneTitleLabel;
     @FXML private Button saveButton;
     @FXML private Button cancelButton;
@@ -59,6 +62,9 @@ public class ASAddCustomerFXMLController implements Initializable {
     
     @FXML private Customer customer;
     
+    /***************************************************************************
+     * INITIALIZER
+     **************************************************************************/
     /**
      * Initializes the controller class, setting the selection items for the
      * city and country combo boxes.
@@ -73,6 +79,9 @@ public class ASAddCustomerFXMLController implements Initializable {
         //TODO: Set ActionListener on comboboxes to autocomplete as user types.
     }
     
+    /***************************************************************************
+     * SETTER
+     **************************************************************************/
     /**
      * Sets the customer parameter with a Customer instance representing the
      * information to be pre-loaded into the form. Additionally, this method
@@ -100,6 +109,9 @@ public class ASAddCustomerFXMLController implements Initializable {
         countryComboBox.getSelectionModel().select(country.getCountryName());
     }
     
+    /***************************************************************************
+     * EVENT HANDLER
+     **************************************************************************/
     /**
      * Segues to the Customer Database scene (ASCustomerFXML) when the user clicks
      * the "Save" or "Cancel" buttons.
@@ -128,6 +140,42 @@ public class ASAddCustomerFXMLController implements Initializable {
         }
     }
  
+    /***************************************************************************
+     * PRIVATE HELPER METHODS - INITIALIZATION
+     **************************************************************************/
+ 
+    /**
+     * Sets the selection items for the city combo box, setting the return value
+     * for the cell factory to the name of the city.
+     */
+    private void setComboBoxItemsForCities() {
+        Collection<City> cities = AppointmentDatabase.getInstance().getCities().values();
+        TreeSet<String> cityNames = new TreeSet<>();
+        for(City c : cities) {
+            cityNames.add(c.getCityName());
+        }
+        
+        cityComboBox.setItems(FXCollections.observableArrayList(cityNames));
+    }
+    
+    /**
+     * Set the selection items for the countries combo box, using the unique set
+     * of country names in the Country table.
+     */
+    private void setComboBoxItemsForCountries() {
+        Collection<Country> countries = AppointmentDatabase.getInstance().getCountries().values();
+        TreeSet<String> countryNames = new TreeSet<>();
+        for(Country c : countries) {
+            countryNames.add(c.getCountryName());
+        }
+        
+        countryComboBox.setItems(FXCollections.observableArrayList(countryNames));
+    }
+    
+    /***************************************************************************
+     * PRIVATE HELPER METHODS - OTHER
+     **************************************************************************/
+
     /** Retrieves the information in the form and saves it to a HashMap, mapping
      * String identifiers to the String values. The identifiers used are the static
      * variables: Customer.CUSTOMER_NAME, Address.ADDRESS_LINE1, Address.ADDRESS_LINE2,
@@ -195,6 +243,14 @@ public class ASAddCustomerFXMLController implements Initializable {
         }
     }
     
+    /**
+     * Verifies that the user has completed all required information, including
+     * the customer name, the first address field, the city, the country, the
+     * postal code, and the phone number.
+     * 
+     * @throws MissingInformationException The exception includes a message that
+     * informs the user which information is missing.
+     */
     private void verifyFormIsComplete() throws MissingInformationException {
         String missingInfo = "";
         
@@ -227,34 +283,6 @@ public class ASAddCustomerFXMLController implements Initializable {
         if(!missingInfo.equals("")) {
             throw new MissingInformationException(missingInfo);
         }
-    }
-            
-    /**
-     * Set the selection items for the countries combo box, using the unique set
-     * of country names in the Country table.
-     */
-    private void setComboBoxItemsForCountries() {
-        Collection<Country> countries = AppointmentDatabase.getInstance().getCountries().values();
-        TreeSet<String> countryNames = new TreeSet<>();
-        for(Country c : countries) {
-            countryNames.add(c.getCountryName());
-        }
-        
-        countryComboBox.setItems(FXCollections.observableArrayList(countryNames));
-    }
-    
-    /**
-     * Sets the selection items for the city combo box, setting the return value
-     * for the cell factory to the name of the city.
-     */
-    private void setComboBoxItemsForCities() {
-        Collection<City> cities = AppointmentDatabase.getInstance().getCities().values();
-        TreeSet<String> cityNames = new TreeSet<>();
-        for(City c : cities) {
-            cityNames.add(c.getCityName());
-        }
-        
-        cityComboBox.setItems(FXCollections.observableArrayList(cityNames));
     }
 }
 

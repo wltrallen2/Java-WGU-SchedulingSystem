@@ -12,18 +12,15 @@ import Model.Customer;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ResourceBundle;
-import java.util.TimeZone;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -57,6 +54,20 @@ import javafx.util.Callback;
  */
 public class ASScheduleFXMLController implements Initializable {
     
+    /***************************************************************************
+     * PRIVATE ENUM
+     **************************************************************************/
+
+    /**
+     * Enumerator of View Options for the schedule's appointment table.<br>
+     * <ul>
+     * <li>ALL - View all appointments.</li>
+     * <li>THIS_WEEKS - View all appointments from this week only.</li>
+     * <li>NEXT_WEEKS - View all appointments from next week only.</li>
+     * <li>THIS_MONTHS - View all appointments from this month only.</li>
+     * <li>NEXT_MONTHS - View all appointments from next month only.</li>
+     * </ul>
+     */
     private enum ViewOption {
         ALL("View All Appointments"),
         THIS_WEEKS("View This Week's"),
@@ -74,13 +85,19 @@ public class ASScheduleFXMLController implements Initializable {
             return description;
         }
     }
-    
+
+    /***************************************************************************
+     * CONSTANT
+     **************************************************************************/
     private final ViewOption[] VIEW_BY_OPTIONS = { ViewOption.ALL,
                                                     ViewOption.THIS_WEEKS,
                                                     ViewOption.NEXT_WEEKS,
                                                     ViewOption.THIS_MONTHS,
                                                     ViewOption.NEXT_MONTHS };
-    
+
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     @FXML private Button viewCustomerDBButton;
     @FXML private Button viewReportsButton;
     @FXML private Button addButton;
@@ -96,7 +113,10 @@ public class ASScheduleFXMLController implements Initializable {
     @FXML private TableColumn<Appointment, Customer> customerColumn;
     @FXML private TableColumn<Appointment, String> locationColumn;
     @FXML private TableColumn<Appointment, String> descriptionColumn;
-    
+
+    /***************************************************************************
+     * INITIALIZER
+     **************************************************************************/
     /**
      * Initializes the controller class.
      * 
@@ -106,6 +126,54 @@ public class ASScheduleFXMLController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         loadAndPopulateAppointmentTable();
+        setAndFilterItems(null);
+        checkForImpendingAppointment();
+    }
+
+    /***************************************************************************
+     * PRIVATE HELPER METHODS - INITIALIZATION
+     **************************************************************************/
+    /**
+     * Checks the appointment database to see if any appointments occur within
+     * the next 15 minutes, and if it does, the method issues an alert indicating
+     * the appointment time.
+     */
+    private void checkForImpendingAppointment() {
+        FilteredList<Appointment> filteredAppointments = getItemsForAppointmentTable();
+        
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        Timestamp nowPlusFifteen = Timestamp.valueOf(LocalDateTime.now().plusMinutes(15));
+        
+        Iterator<Appointment> it = filteredAppointments.iterator();
+        boolean appointmentFound = false;
+        while(!appointmentFound && it.hasNext()) {
+            Appointment a = it.next();
+            Timestamp start = Timestamp.valueOf(getLocalDateTime(a.getStart()).toLocalDateTime());
+            if(start.after(now) && start.before(nowPlusFifteen)) {
+                String message = "You have an appointment starting at "
+                        + start.toLocalDateTime().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)) + ".";
+                Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
+                alert.setHeaderText("Upcoming Appointment");
+                alert.showAndWait();
+            }
+        }
+    }
+
+    /**
+     * Sets the items for the appointment table by calling on the AppointmentDatabase
+     * Singleton Instance for a HashMap of Appointment instances, sorts these
+     * instances based on the start DateTime, and then binds the sorting comparator
+     * properties of the list of appointments and the appointment table in case
+     * the user decides to sort by customer name or appointment location.
+     */
+    private FilteredList<Appointment> getItemsForAppointmentTable() {
+        HashMap<Integer, Appointment> appointments = AppointmentDatabase.getInstance().getAppointments();
+        ObservableList<Appointment> items = FXCollections.observableArrayList(appointments.values());
+        
+        items.sort((Appointment a1, Appointment a2) -> a1.getStart().compareTo(a2.getStart()));
+        FilteredList<Appointment> filteredItems = new FilteredList<>(items);
+        
+        return filteredItems;
     }
     
     /**
@@ -119,11 +187,32 @@ public class ASScheduleFXMLController implements Initializable {
         populateDateTimeColumns();
         populateCustomerColumn();
         populateOtherStringColumns();
-        
-        setAndFilterItems(null);
-        checkForImpendingAppointment();
     }
     
+    /**
+     * Sets the CellValueFactorys and the CellFactorys for the customer column,
+     * defining that the column will display the customer name.
+     */
+    private void populateCustomerColumn() {
+        customerColumn.setCellValueFactory(
+            new PropertyValueFactory<>("customer"));        
+
+        customerColumn.setCellFactory(column -> {
+            return new TableCell<Appointment, Customer>() {
+                @Override
+                protected void updateItem(Customer item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if (item == null || empty) {
+                        setText(null);
+                    } else {
+                        setText(item.getCustomerName());
+                    }
+                }
+            };
+        });
+    }
+
     /**
      * Sets the CellValueFactorys and the CellFactorys for the date,
      * start, and end columns in the appointment table. The method defines
@@ -194,30 +283,6 @@ public class ASScheduleFXMLController implements Initializable {
     }
     
     /**
-     * Sets the CellValueFactorys and the CellFactorys for the customer column,
-     * defining that the column will display the customer name.
-     */
-    private void populateCustomerColumn() {
-        customerColumn.setCellValueFactory(
-            new PropertyValueFactory<>("customer"));        
-
-        customerColumn.setCellFactory(column -> {
-            return new TableCell<Appointment, Customer>() {
-                @Override
-                protected void updateItem(Customer item, boolean empty) {
-                    super.updateItem(item, empty);
-                    
-                    if (item == null || empty) {
-                        setText(null);
-                    } else {
-                        setText(item.getCustomerName());
-                    }
-                }
-            };
-        });
-    }
-    
-    /**
      * Sets the CellValueFactorys and the CellFactorys for the location and
      * the description columns in the appointment table.
      */
@@ -227,23 +292,6 @@ public class ASScheduleFXMLController implements Initializable {
         descriptionColumn.setCellValueFactory(
             new PropertyValueFactory<>("description"));
     }
-    
-    /**
-     * Sets the items for the appointment table by calling on the AppointmentDatabase
-     * Singleton Instance for a HashMap of Appointment instances, sorts these
-     * instances based on the start DateTime, and then binds the sorting comparator
-     * properties of the list of appointments and the appointment table in case
-     * the user decides to sort by customer name or appointment location.
-     */
-    private FilteredList<Appointment> getItemsForAppointmentTable() {
-        HashMap<Integer, Appointment> appointments = AppointmentDatabase.getInstance().getAppointments();
-        ObservableList<Appointment> items = FXCollections.observableArrayList(appointments.values());
-        
-        items.sort((Appointment a1, Appointment a2) -> a1.getStart().compareTo(a2.getStart()));
-        FilteredList<Appointment> filteredItems = new FilteredList<>(items);
-        
-        return filteredItems;
-        }
     
     /**
      * Sets the items for the View By ComboBox utilizing the five values of the
@@ -273,7 +321,26 @@ public class ASScheduleFXMLController implements Initializable {
         viewByComboBox.setItems(FXCollections.observableArrayList(VIEW_BY_OPTIONS));
         viewByComboBox.getSelectionModel().select(ViewOption.ALL);
     }
-        
+
+    /***************************************************************************
+     * EVENT HANDLERS
+     **************************************************************************/
+    /**
+     * Deletes the selected appointment from both the appointment table in the
+     * database and from the HashMap of Appointment instances in the Appointment
+     * Database Singleton instance.
+     * 
+     * @param event the ActionEvent that triggered the method, in this case, the
+     * user clicking the delete button.
+     */
+    @FXML private void deleteAppointment(ActionEvent event) {
+        Appointment appointment = appointmentTable.getSelectionModel().getSelectedItem();
+        if(appointment != null) {
+            AppointmentDatabase.getInstance().removeApointment(appointment);
+            setAndFilterItems(null);
+        }
+    }
+    
     /**
      * Exits the application when the exit button is pressed.
      * 
@@ -329,22 +396,6 @@ public class ASScheduleFXMLController implements Initializable {
             stage.show();
         }
     }
-
-    /**
-     * Deletes the selected appointment from both the appointment table in the
-     * database and from the HashMap of Appointment instances in the Appointment
-     * Database Singleton instance.
-     * 
-     * @param event the ActionEvent that triggered the method, in this case, the
-     * user clicking the delete button.
-     */
-    @FXML private void deleteAppointment(ActionEvent event) {
-        Appointment appointment = appointmentTable.getSelectionModel().getSelectedItem();
-        if(appointment != null) {
-            AppointmentDatabase.getInstance().removeApointment(appointment);
-            setAndFilterItems(null);
-        }
-    }
     
     /**
      * Filters the appointments in the table based on the value that the user
@@ -394,7 +445,10 @@ public class ASScheduleFXMLController implements Initializable {
         
         appointmentTable.setItems(sortedItems);
     }
-    
+
+    /***************************************************************************
+     * PRIVATE HELPER METHODS
+     **************************************************************************/
     /**
      * Converts the timestamp to the local time using the systems default zone id.
      * 
@@ -404,26 +458,5 @@ public class ASScheduleFXMLController implements Initializable {
     private ZonedDateTime getLocalDateTime(Timestamp timestamp) {
         ZonedDateTime zdt = ZonedDateTime.of(timestamp.toLocalDateTime(), ZoneId.of("GMT"));
         return zdt.withZoneSameInstant(ZoneId.systemDefault());
-    }
-    
-    private void checkForImpendingAppointment() {
-        FilteredList<Appointment> filteredAppointments = getItemsForAppointmentTable();
-        
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        Timestamp nowPlusFifteen = Timestamp.valueOf(LocalDateTime.now().plusMinutes(15));
-        
-        Iterator<Appointment> it = filteredAppointments.iterator();
-        boolean appointmentFound = false;
-        while(!appointmentFound && it.hasNext()) {
-            Appointment a = it.next();
-            Timestamp start = Timestamp.valueOf(getLocalDateTime(a.getStart()).toLocalDateTime());
-            if(start.after(now) && start.before(nowPlusFifteen)) {
-                String message = "You have an appointment starting at "
-                        + start.toLocalDateTime().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)) + ".";
-                Alert alert = new Alert(AlertType.INFORMATION, message, ButtonType.OK);
-                alert.setHeaderText("Upcoming Appointment");
-                alert.showAndWait();
-            }
-        }
     }
 }

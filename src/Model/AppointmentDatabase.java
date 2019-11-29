@@ -18,9 +18,15 @@ import java.util.HashMap;
  * @author walterallen
  */
 public class AppointmentDatabase {
-    
+
+    /***************************************************************************
+     * CONSTANT
+     **************************************************************************/
     private static AppointmentDatabase singletonInstance = null;
-    
+
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     private String userName;
     private HashMap<Integer, Customer> customers;
     private HashMap<Integer, Address> addresses;
@@ -33,7 +39,11 @@ public class AppointmentDatabase {
     private Timestamp lastUpdateToCities;
     private Timestamp lastUpdateToCountries;
     private Timestamp lastUpdateToAppointments;
-    
+
+    /***************************************************************************
+     * CONSTRUCTOR
+     **************************************************************************/
+
     /**
      * Class constructor. Sets the name of the user that is accessing the database.
      * 
@@ -49,6 +59,10 @@ public class AppointmentDatabase {
         customers = pullCustomersFromDB();
         appointments = pullAppointmentsFromDB();
     }
+
+    /***************************************************************************
+     * SINGLETON ACCESSOR
+     **************************************************************************/
     
     /**
      * 
@@ -61,7 +75,11 @@ public class AppointmentDatabase {
         
         return singletonInstance;
     }
-    
+
+    /***************************************************************************
+     * SYNCHRONIZED INITIALIZER
+     **************************************************************************/
+
     /**
      * Synchronized class constructor that ensures that only one Singleton instance
      * of the AppointmentDatabase object is initialized with a given user name value.
@@ -78,7 +96,11 @@ public class AppointmentDatabase {
         singletonInstance = new AppointmentDatabase(userName);
         return singletonInstance;
     }
-    
+
+    /***************************************************************************
+     * SETTERS
+     **************************************************************************/
+ 
     /**
      * Sets the name of the user that is accessing the database.
      * 
@@ -87,24 +109,17 @@ public class AppointmentDatabase {
     public void setUserName(String userName) {
         this.userName = userName;
     }
-    
+ 
+    /***************************************************************************
+     * GETTERS
+     **************************************************************************/
+
     /**
      * 
      * @return a String representing the name of the user accessing the database.
      */
     public String getUserName() {
         return userName;
-    }
-    
-    /**
-     * Utilizes the String stored in the user name to obtain the user id.
-     * 
-     * @return an int representing the userId for the current user.
-     */
-    public int getUserId() {
-        HashMap<String, Object> data = new HashMap<>();
-        data.put("userName", userName);
-        return DBQuery.recordExistsInDatabase("user", data);
     }
     
     /**
@@ -209,6 +224,21 @@ public class AppointmentDatabase {
         
         return appointments;
     }
+
+    /***************************************************************************
+     * PUBLIC METHODS - RETREIVE INFO FROM COLLECTIONS/DATABASE
+     **************************************************************************/
+
+    /**
+     * Utilizes the String stored in the user name to obtain the user id.
+     * 
+     * @return an int representing the userId for the current user.
+     */
+    public int getUserId() {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("userName", userName);
+        return DBQuery.recordExistsInDatabase("user", data);
+    }
     
     /**
      * Allows the user to access an instance of a Country using the countryId value.
@@ -282,198 +312,10 @@ public class AppointmentDatabase {
         
         return ts;
     }
-        
-    /**
-     * Pulls the countries from the Country table in the database and creates a
-     * HashMap that maps the countryIds to instances of Country objects representing
-     * each country.
-     * 
-     * @return a HashMap mapping ints (representing country ids) to Country objects
-     * (representing each country in the database)
-     * @throws SQLException 
-     */
-    private HashMap<Integer, Country> pullCountriesFromDB() throws SQLException {
-        HashMap<Integer, Country>map = new HashMap<>();
-        String tableName = "country";
-        String orderByColumnName = "country";
-        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
-        
-        // TODO: Can these be refractored to use the getHashMapFromResultSetRow method
-        // Current problem is that the getHashMapFromResultSetRow method calls on the
-        // Singleton instance, which is not yet instantiated fully. What is the workaround?
-        while(rs.next()) {
-            int id = rs.getInt(Country.COUNTRY_ID);
-            String name = rs.getString(Country.COUNTRY_NAME);
-            Timestamp createDate = rs.getTimestamp(Country.CREATE_DATE);
-            String createdBy = rs.getString(Country.CREATED_BY);
-            Timestamp lastUpdate = rs.getTimestamp(Country.LAST_UPDATE);
-            String lastUpdateBy = rs.getString(Country.LAST_UPDATE_BY);
-            
-            if(lastUpdateToCountries == null || lastUpdate.after(lastUpdateToCountries)) {
-                lastUpdateToCountries = lastUpdate;
-            }
-            
-            map.put(id, new Country(id, name, createDate, createdBy, lastUpdate, lastUpdateBy));
-        }
-        
-        return map;
-    }
-    
-    /**
-     * Pulls the cities from the City table in the database and creates a
-     * HashMap that maps the cityIds to instances of City objects representing
-     * each city.
 
-     * @return a HashMap mapping ints (representing city ids) to City objects
-     * (representing each city in the database)
-     * @throws SQLException 
-     */
-    private HashMap<Integer, City> pullCitiesFromDB() throws SQLException {
-        HashMap<Integer, City> map = new HashMap<>();
-        String tableName = "city";
-        String orderByColumnName = "city";
-        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
-
-        while(rs.next()) {
-            int id = rs.getInt(City.CITY_ID);
-            String name = rs.getString(City.CITY_NAME);
-            int countryId = rs.getInt(City.COUNTRY_ID);
-            Timestamp createDate = rs.getTimestamp(City.CREATE_DATE);
-            String createdBy = rs.getString(City.CREATED_BY);
-            Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
-            String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
-            
-            if(lastUpdateToCities == null || lastUpdate.after(lastUpdateToCities)) {
-                lastUpdateToCities = lastUpdate;
-            }
-            
-            Country country = countries.get(countryId);
-            map.put(id, new City(id, name, country, createDate, createdBy, lastUpdate, lastUpdateBy));
-        }
-        
-        return map;
-    }
-    
-    /**
-     * Pulls the addresses from the Address table in the database and creates a
-     * HashMap that maps the addressIds to instances of Address objects representing
-     * each address.
-
-     * @return a HashMap mapping ints (representing address ids) to Address objects
-     * (representing each address in the database)
-     * @throws SQLException 
-     */
-    private HashMap<Integer, Address> pullAddressesFromDB() throws SQLException {
-        HashMap<Integer, Address> map = new HashMap<>();
-        String tableName = Address.TABLE_NAME;
-        String orderByColumnName = Address.POSTAL_CODE;
-        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
-
-        while(rs.next()) {
-            int id = rs.getInt(Address.ADDRESS_ID);
-            String address1 = rs.getString(Address.ADDRESS_LINE1);
-            String address2 = rs.getString(Address.ADDRESS_LINE2);
-            int cityId = rs.getInt(Address.CITY_ID);
-            String zip = rs.getString(Address.POSTAL_CODE);
-            String phone = rs.getString(Address.PHONE);
-            Timestamp createDate = rs.getTimestamp(City.CREATE_DATE);
-            String createdBy = rs.getString(City.CREATED_BY);
-            Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
-            String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
-            
-            if(lastUpdateToAddresses == null || lastUpdate.after(lastUpdateToAddresses)) {
-                lastUpdateToAddresses = lastUpdate;
-            }
-            
-            City city = cities.get(cityId);
-            map.put(id, new Address(id, address1, address2, city, zip, phone,
-                    createDate, createdBy, lastUpdate, lastUpdateBy));
-        }
-        
-        return map;
-    }
-
-    /**
-     * Pulls the customers from the Customer table in the database and creates a
-     * HashMap that maps the customerIds to instances of Customer objects representing
-     * each address.
-
-     * @return a HashMap mapping ints (representing customer ids) to Customer objects
-     * (representing each customer in the database)
-     * @throws SQLException 
-     */
-    private HashMap<Integer, Customer> pullCustomersFromDB() throws SQLException {
-        HashMap<Integer, Customer> map = new HashMap<>();
-        String tableName = Customer.TABLE_NAME;
-        String orderByColumnName = Customer.CUSTOMER_NAME;
-        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
-
-        while(rs.next()) {
-            int id = rs.getInt(Customer.CUSTOMER_ID);
-            String name = rs.getString(Customer.CUSTOMER_NAME);
-            int addressId = rs.getInt(Customer.ADDRESS_ID);
-            Boolean active = rs.getBoolean(Customer.ACTIVE);
-            Timestamp createDate = rs.getTimestamp(City.CREATE_DATE);
-            String createdBy = rs.getString(City.CREATED_BY);
-            Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
-            String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
-            
-            if(lastUpdateToCustomers == null || lastUpdate.after(lastUpdateToCustomers)) {
-                lastUpdateToCustomers = lastUpdate;
-            }
-            
-            Address address = addresses.get(addressId);
-            map.put(id, new Customer(id, name, address, active,
-                    createDate, createdBy, lastUpdate, lastUpdateBy));
-        }
-        
-        return map;
-    }
-    
-    /**
-     * Pulls the appointments from the Appointment table in the database and creates a
-     * HashMap that maps the appointmentIds to instances of Appointment objects representing
-     * each address.
-
-     * @return a HashMap mapping ints (representing appointment ids) to Appointment objects
-     * (representing each appointment in the database)
-     * @throws SQLException 
-     */
-    private HashMap<Integer, Appointment> pullAppointmentsFromDB() throws SQLException {
-        HashMap<Integer, Appointment> map = new HashMap<>();
-        String tableName = Appointment.TABLE_NAME;
-        String orderByColumnName = Appointment.START_TIME;
-        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
-
-        while(rs.next()) {
-            int appointmentId = rs.getInt(Appointment.APPOINTMENT_ID);
-            int customerId = rs.getInt(Appointment.CUSTOMER_ID);
-            int userId = rs.getInt(Appointment.USER_ID);
-            String title = rs.getString(Appointment.TITLE);
-            String description = rs.getString(Appointment.DESCRIPTION);
-            String location = rs.getString(Appointment.LOCATION);
-            String contact = rs.getString(Appointment.CONTACT);
-            String type = rs.getString(Appointment.TYPE);
-            String url = rs.getString(Appointment.URL);
-            Timestamp start = rs.getTimestamp(Appointment.START_TIME);
-            Timestamp end = rs.getTimestamp(Appointment.END_TIME);
-            Timestamp createDate = rs.getTimestamp(Appointment.CREATE_DATE);
-            String createdBy = rs.getString(Appointment.CREATED_BY);
-            Timestamp lastUpdate = rs.getTimestamp(Appointment.LAST_UPDATE);
-            String lastUpdateBy = rs.getString(Appointment.LAST_UPDATE_BY);
-            
-            Customer customer = getCustomerWithId(customerId);
-            if(lastUpdateToAppointments == null || lastUpdate.after(lastUpdateToAppointments)) {
-                lastUpdateToAppointments = lastUpdate;
-            }
-            
-            map.put(appointmentId, new Appointment(appointmentId, customer, userId,
-                title, description, location, contact, type, url, start, end,
-                createDate, createdBy, lastUpdate, lastUpdateBy));
-        }
-        
-        return map;
-    }
+    /***************************************************************************
+     * PUBLIC METHODS - RETRIEVE/CREATE RECORD FROM/IN DATABASE
+     **************************************************************************/
 
     /**
      * Retrieves a country from the database if it already exists, OR adds the
@@ -696,7 +538,11 @@ public class AppointmentDatabase {
         
         return newAppointment;
     }
-    
+
+    /***************************************************************************
+     * PUBLIC METHODS - REMOVE ELEMENTS FROM COLLECTIONS/DATABASE
+     **************************************************************************/
+
     /**
      * Removes a row from the appointment table in the database as well as removing
      * the corresponding Appointment instance from the appointments property in
@@ -827,6 +673,10 @@ public class AppointmentDatabase {
         return success;
     }
 
+    /***************************************************************************
+     * PUBLIC METHOD - UPDATE RECORD/DATABASE
+     **************************************************************************/
+    
     /** Updates the information for a customer by comparing the original Customer
      * instance with a new instance of Customer containing the update information.
      * The method will update the customer name and addressId as necessary. Then,
@@ -860,6 +710,10 @@ public class AppointmentDatabase {
         removeCity(city);
         removeCountry(country);
     }
+    
+    /***************************************************************************
+     * PRIVATE HELPER METHODS
+     **************************************************************************/
 
     /**
      * Inserts the standard four metadata column-value pairs into the data HashMap.
@@ -874,5 +728,197 @@ public class AppointmentDatabase {
         data.put(Country.CREATED_BY, userName);
         data.put(Country.LAST_UPDATE, SQLCommand.NOW);
         data.put(Country.LAST_UPDATE_BY, userName);
+    }
+
+    /**
+     * Pulls the countries from the Country table in the database and creates a
+     * HashMap that maps the countryIds to instances of Country objects representing
+     * each country.
+     * 
+     * @return a HashMap mapping ints (representing country ids) to Country objects
+     * (representing each country in the database)
+     * @throws SQLException 
+     */
+    private HashMap<Integer, Country> pullCountriesFromDB() throws SQLException {
+        HashMap<Integer, Country>map = new HashMap<>();
+        String tableName = "country";
+        String orderByColumnName = "country";
+        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
+        
+        // TODO: Can these be refractored to use the getHashMapFromResultSetRow method
+        // Current problem is that the getHashMapFromResultSetRow method calls on the
+        // Singleton instance, which is not yet instantiated fully. What is the workaround?
+        while(rs.next()) {
+            int id = rs.getInt(Country.COUNTRY_ID);
+            String name = rs.getString(Country.COUNTRY_NAME);
+            Timestamp createDate = rs.getTimestamp(Country.CREATE_DATE);
+            String createdBy = rs.getString(Country.CREATED_BY);
+            Timestamp lastUpdate = rs.getTimestamp(Country.LAST_UPDATE);
+            String lastUpdateBy = rs.getString(Country.LAST_UPDATE_BY);
+            
+            if(lastUpdateToCountries == null || lastUpdate.after(lastUpdateToCountries)) {
+                lastUpdateToCountries = lastUpdate;
+            }
+            
+            map.put(id, new Country(id, name, createDate, createdBy, lastUpdate, lastUpdateBy));
+        }
+        
+        return map;
+    }
+    
+    /**
+     * Pulls the cities from the City table in the database and creates a
+     * HashMap that maps the cityIds to instances of City objects representing
+     * each city.
+
+     * @return a HashMap mapping ints (representing city ids) to City objects
+     * (representing each city in the database)
+     * @throws SQLException 
+     */
+    private HashMap<Integer, City> pullCitiesFromDB() throws SQLException {
+        HashMap<Integer, City> map = new HashMap<>();
+        String tableName = "city";
+        String orderByColumnName = "city";
+        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
+
+        while(rs.next()) {
+            int id = rs.getInt(City.CITY_ID);
+            String name = rs.getString(City.CITY_NAME);
+            int countryId = rs.getInt(City.COUNTRY_ID);
+            Timestamp createDate = rs.getTimestamp(City.CREATE_DATE);
+            String createdBy = rs.getString(City.CREATED_BY);
+            Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
+            String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
+            
+            if(lastUpdateToCities == null || lastUpdate.after(lastUpdateToCities)) {
+                lastUpdateToCities = lastUpdate;
+            }
+            
+            Country country = countries.get(countryId);
+            map.put(id, new City(id, name, country, createDate, createdBy, lastUpdate, lastUpdateBy));
+        }
+        
+        return map;
+    }
+    
+    /**
+     * Pulls the addresses from the Address table in the database and creates a
+     * HashMap that maps the addressIds to instances of Address objects representing
+     * each address.
+
+     * @return a HashMap mapping ints (representing address ids) to Address objects
+     * (representing each address in the database)
+     * @throws SQLException 
+     */
+    private HashMap<Integer, Address> pullAddressesFromDB() throws SQLException {
+        HashMap<Integer, Address> map = new HashMap<>();
+        String tableName = Address.TABLE_NAME;
+        String orderByColumnName = Address.POSTAL_CODE;
+        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
+
+        while(rs.next()) {
+            int id = rs.getInt(Address.ADDRESS_ID);
+            String address1 = rs.getString(Address.ADDRESS_LINE1);
+            String address2 = rs.getString(Address.ADDRESS_LINE2);
+            int cityId = rs.getInt(Address.CITY_ID);
+            String zip = rs.getString(Address.POSTAL_CODE);
+            String phone = rs.getString(Address.PHONE);
+            Timestamp createDate = rs.getTimestamp(City.CREATE_DATE);
+            String createdBy = rs.getString(City.CREATED_BY);
+            Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
+            String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
+            
+            if(lastUpdateToAddresses == null || lastUpdate.after(lastUpdateToAddresses)) {
+                lastUpdateToAddresses = lastUpdate;
+            }
+            
+            City city = cities.get(cityId);
+            map.put(id, new Address(id, address1, address2, city, zip, phone,
+                    createDate, createdBy, lastUpdate, lastUpdateBy));
+        }
+        
+        return map;
+    }
+
+    /**
+     * Pulls the customers from the Customer table in the database and creates a
+     * HashMap that maps the customerIds to instances of Customer objects representing
+     * each address.
+
+     * @return a HashMap mapping ints (representing customer ids) to Customer objects
+     * (representing each customer in the database)
+     * @throws SQLException 
+     */
+    private HashMap<Integer, Customer> pullCustomersFromDB() throws SQLException {
+        HashMap<Integer, Customer> map = new HashMap<>();
+        String tableName = Customer.TABLE_NAME;
+        String orderByColumnName = Customer.CUSTOMER_NAME;
+        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
+
+        while(rs.next()) {
+            int id = rs.getInt(Customer.CUSTOMER_ID);
+            String name = rs.getString(Customer.CUSTOMER_NAME);
+            int addressId = rs.getInt(Customer.ADDRESS_ID);
+            Boolean active = rs.getBoolean(Customer.ACTIVE);
+            Timestamp createDate = rs.getTimestamp(City.CREATE_DATE);
+            String createdBy = rs.getString(City.CREATED_BY);
+            Timestamp lastUpdate = rs.getTimestamp(City.LAST_UPDATE);
+            String lastUpdateBy = rs.getString(City.LAST_UPDATE_BY);
+            
+            if(lastUpdateToCustomers == null || lastUpdate.after(lastUpdateToCustomers)) {
+                lastUpdateToCustomers = lastUpdate;
+            }
+            
+            Address address = addresses.get(addressId);
+            map.put(id, new Customer(id, name, address, active,
+                    createDate, createdBy, lastUpdate, lastUpdateBy));
+        }
+        
+        return map;
+    }
+    
+    /**
+     * Pulls the appointments from the Appointment table in the database and creates a
+     * HashMap that maps the appointmentIds to instances of Appointment objects representing
+     * each address.
+
+     * @return a HashMap mapping ints (representing appointment ids) to Appointment objects
+     * (representing each appointment in the database)
+     * @throws SQLException 
+     */
+    private HashMap<Integer, Appointment> pullAppointmentsFromDB() throws SQLException {
+        HashMap<Integer, Appointment> map = new HashMap<>();
+        String tableName = Appointment.TABLE_NAME;
+        String orderByColumnName = Appointment.START_TIME;
+        ResultSet rs = DBQuery.getResultSetOfAllOrderedRows(tableName, orderByColumnName);
+
+        while(rs.next()) {
+            int appointmentId = rs.getInt(Appointment.APPOINTMENT_ID);
+            int customerId = rs.getInt(Appointment.CUSTOMER_ID);
+            int userId = rs.getInt(Appointment.USER_ID);
+            String title = rs.getString(Appointment.TITLE);
+            String description = rs.getString(Appointment.DESCRIPTION);
+            String location = rs.getString(Appointment.LOCATION);
+            String contact = rs.getString(Appointment.CONTACT);
+            String type = rs.getString(Appointment.TYPE);
+            String url = rs.getString(Appointment.URL);
+            Timestamp start = rs.getTimestamp(Appointment.START_TIME);
+            Timestamp end = rs.getTimestamp(Appointment.END_TIME);
+            Timestamp createDate = rs.getTimestamp(Appointment.CREATE_DATE);
+            String createdBy = rs.getString(Appointment.CREATED_BY);
+            Timestamp lastUpdate = rs.getTimestamp(Appointment.LAST_UPDATE);
+            String lastUpdateBy = rs.getString(Appointment.LAST_UPDATE_BY);
+            
+            Customer customer = getCustomerWithId(customerId);
+            if(lastUpdateToAppointments == null || lastUpdate.after(lastUpdateToAppointments)) {
+                lastUpdateToAppointments = lastUpdate;
+            }
+            
+            map.put(appointmentId, new Appointment(appointmentId, customer, userId,
+                title, description, location, contact, type, url, start, end,
+                createDate, createdBy, lastUpdate, lastUpdateBy));
+        }
+        
+        return map;
     }
 }

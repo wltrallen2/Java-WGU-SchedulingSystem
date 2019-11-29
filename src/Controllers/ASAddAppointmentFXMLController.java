@@ -52,18 +52,35 @@ import javafx.util.Callback;
  */
 public class ASAddAppointmentFXMLController implements Initializable {
     
+    /***************************************************************************
+     * PRIVATE INNER CLASS, EXCEPTION SUBCLASS
+     **************************************************************************/
+
+    /**
+     * A subclass of Exception that represents that the user has entered
+     * appointment information that is invalid.
+     */
     private class InvalidAppointmentException extends Exception {
+        /**
+         * Constructor class
+         * 
+         * @param message a String representing the information to be returned
+         * to the method that throws the InvalidAppointmentException
+         */
         public InvalidAppointmentException(String message) {
             super(message);
         }
     }
-            
+
+    /***************************************************************************
+     * CONSTANTS
+     **************************************************************************/
     private final int START_HOUR_OF_BUSINESS_DAY = 8; // 8 a.m.
     private final int END_HOUR_OF_BUSINESS_DAY = 17; // 5 p.m.
-    private final DayOfWeek[] WORK_DAYS = { DayOfWeek.MONDAY,
-        DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
-        DayOfWeek.FRIDAY }; // Monday through Friday
     
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     @FXML private Label sceneTitleLabel;
     @FXML private Button saveButton;
     @FXML private Button cancelButton;
@@ -85,14 +102,24 @@ public class ASAddAppointmentFXMLController implements Initializable {
     
     private Appointment appointment;
 
+    /***************************************************************************
+     * INITIALIZER
+     **************************************************************************/
+
     /**
      * Initializes the controller class.
+     * @param url The location used to resolve relative paths for the root object, or null if the location is not known. 
+     * @param rb - The resources used to localize the root object, or null if the root object was not localized.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setCustomerComboBoxItems();
         setTimeComboBoxItems();
     }
+    
+    /***************************************************************************
+     * PUBLIC SETTER
+     **************************************************************************/
     
     /**
      * Sets the appointment parameter for this scene, populating the user fields
@@ -140,6 +167,10 @@ public class ASAddAppointmentFXMLController implements Initializable {
         
         sceneTitleLabel.setText("View/Modify Appointment Details");
     }
+
+    /***************************************************************************
+     * EVENT HANDLERS
+     **************************************************************************/
     
     /**
      * Segues back to the ASScheduleFXML scene, calling the saveAppointmentInfo
@@ -172,7 +203,11 @@ public class ASAddAppointmentFXMLController implements Initializable {
             alert.showAndWait();
         }
     }
-        
+
+    /***************************************************************************
+     * PRIVATE HELPER METHODS - INITIALIZATION
+     **************************************************************************/
+    
     /**
      * Populates the customer combo box with the names of the customers in the
      * customer table of the database. The method also sorts the customers
@@ -248,86 +283,17 @@ public class ASAddAppointmentFXMLController implements Initializable {
         startPeriodComboBox.setItems(FXCollections.observableArrayList(period));
         endPeriodComboBox.setItems(FXCollections.observableArrayList(period));
     }
-    
-    /**
-     * If the appointment variable is null, saves the new appointment to the database
-     * and creates a new instance of an Appointment, adding it to the appointments
-     * HashMap in the AppointmentDatabase Singleton instance; else, modifies the
-     * existing appointment in both the database and the AppointmentDatabase Singleton
-     * instance.
-     */
-    private void saveAppointmentInfo() 
-            throws InvalidAppointmentException, MissingInformationException {
-        HashMap<String, Object> data = getHashMapForAppointmentCreation();
-        
-        if(appointment == null) {
-            AppointmentDatabase.getInstance().createNewAppointmentInDb(data);
-        } else {
-            Customer newCustomer = 
-                    AppointmentDatabase.getInstance().getCustomerWithId
-                    ((Integer)data.get(Appointment.CUSTOMER_ID));
-            
-            if(!appointment.getCustomer().equals(newCustomer)) {
-                appointment.setCustomer(newCustomer); }
-            if(!appointment.getTitle().equals(data.get(Appointment.TITLE))) {
-                appointment.setTitle(((String)data.get(Appointment.TITLE))); }
-            if(!appointment.getDescription().equals(data.get(Appointment.DESCRIPTION))) {
-                appointment.setDescription(((String)data.get(Appointment.DESCRIPTION))); }
-            if(!appointment.getLocation().equals(data.get(Appointment.LOCATION))) {
-                appointment.setLocation(((String)data.get(Appointment.LOCATION))); }
-            if(!appointment.getContact().equals(data.get(Appointment.CONTACT))) {
-                appointment.setContact(((String)data.get(Appointment.CONTACT))); }
-            if(!appointment.getType().equals(data.get(Appointment.TYPE))) {
-                appointment.setType(((String)data.get(Appointment.TYPE))); }
-            if(!appointment.getURL().equals(data.get(Appointment.URL))) {
-                appointment.setURL(((String)data.get(Appointment.URL))); }
-            if(!appointment.getStart().equals(data.get(Appointment.START_TIME))) {
-                appointment.setStart(((Timestamp)data.get(Appointment.START_TIME))); }
-            if(!appointment.getEnd().equals(data.get(Appointment.END_TIME))) {
-                appointment.setEnd(((Timestamp)data.get(Appointment.END_TIME))); }
-        }
-    }
-    
-    /**
-     * 
-     * @param hour an int representing the hour
-     * @param minute an int representing the minute
-     * @param period a String representing the period (AM or PM)
-     * @return a String representing the time in 12-hour format.
-     */
-    private String toTwelveHourTimeString(int hour, int minute, String period) {
-        if(hour == 12) { hour -= 12; }
-        hour = period.equals("AM") ? hour : (hour + 12);
-        String adjHour = (hour < 10 ? "0" + hour : "" + hour);
-        
-        String adjMinute = (minute < 10 ? "0" + minute : "" + minute);
-        return adjHour + ":" + adjMinute + ":00";
-    }
-    
-    /**
-     * Calculates and returns the timestamp code for the given date and time.
-     * 
-     * @param date a LocalDate instance representing the date to be encoded
-     * @param hour an int representing the hour to be encoded
-     * @param minute an int representing the minute to be encoded
-     * @param period a String representing the period to be encoded
-     * @return a String representing the timestamp to be stored in an RDBMS
-     */
-    private Timestamp getTimestampCode(LocalDate date, int hour, int minute, String period) {
-        String timestampCode = date.getYear() + "-" + date.getMonthValue() + "-" + date.getDayOfMonth()
-                + " " + toTwelveHourTimeString(hour, minute, period);
-        return Timestamp.valueOf(timestampCode);
-    }
-    
-    private Timestamp getStartTimestamp() {
-        LocalDate date = datePicker.getValue();
-        int startHour = startHourComboBox.getSelectionModel().getSelectedItem();
-        int startMinute = startMinuteComboBox.getSelectionModel().getSelectedItem();
-        String startPeriod = startPeriodComboBox.getSelectionModel().getSelectedItem();
 
-        return getTimestampCode(date, startHour, startMinute, startPeriod);
-    }
+    /***************************************************************************
+     * PRIVATE HELPER METHODS - OTHER
+     **************************************************************************/
     
+    /**
+     * Retrieves the user-entered information for the date, hour, minute, and period
+     * for the end time and converts them into a Timestamp instance.
+     * 
+     * @return a Timestamp representing the end time for the appointment.
+     */
     private Timestamp getEndTimestamp() {
         LocalDate date = datePicker.getValue();
         int endHour = endHourComboBox.getSelectionModel().getSelectedItem();
@@ -336,7 +302,21 @@ public class ASAddAppointmentFXMLController implements Initializable {
         
         return getTimestampCode(date, endHour, endMinute, endPeriod);
     }
-    
+                    
+    /**
+     * Adjusts a Timestamp in the user's local time zone to Greenwich Mean Time.
+     * This assumes that the user has entered their appointment time using their 
+     * own local time zone.
+     * 
+     * @param localTimeCode a Timestamp instance representing the data that the user entered
+     * @return a Timestamp with the date and time adjusted to Greenwich Mean Time.
+     */
+    private Timestamp getGMTTimestampFromLocalTimestamp (Timestamp localTime) {
+        ZonedDateTime zdtLocal = ZonedDateTime.of(localTime.toLocalDateTime(), ZoneId.systemDefault());
+        ZonedDateTime zdt = zdtLocal.withZoneSameInstant(ZoneId.of("GMT"));
+        return Timestamp.valueOf(zdt.toLocalDateTime());
+    }
+
     /**
      * Creates and returns a HashMap that maps the user's entered data to a set of
      * key-value pairs that match the columns in the appointment table of the database.
@@ -377,7 +357,120 @@ public class ASAddAppointmentFXMLController implements Initializable {
             throw ex;
         }
     }
+
+    /**
+     * Adjusts a Timestamp from Greenwich Mean Time to the user's local time zone
+     * as read from the system.
+     * 
+     * @param gmtTime a Timestamp instance representing the time in GMT
+     * @return 
+     */
+    private Timestamp getLocalTimestampFromGMTTimestamp(Timestamp gmtTime) {
+        ZonedDateTime zdt = ZonedDateTime.of(gmtTime.toLocalDateTime(), ZoneId.of("GMT"));
+        ZonedDateTime zdtLocal = zdt.withZoneSameInstant(ZoneId.systemDefault());
+        return Timestamp.valueOf(zdtLocal.toLocalDateTime());
+    }
+ 
+    /**
+     * Retrieves the user-entered information from the date, hour, minute, and period
+     * for the start time and converts them into a Timestamp instance.
+     * 
+     * @return a Timestamp representing the start time for the appointment.
+     */
+    private Timestamp getStartTimestamp() {
+        LocalDate date = datePicker.getValue();
+        int startHour = startHourComboBox.getSelectionModel().getSelectedItem();
+        int startMinute = startMinuteComboBox.getSelectionModel().getSelectedItem();
+        String startPeriod = startPeriodComboBox.getSelectionModel().getSelectedItem();
+
+        return getTimestampCode(date, startHour, startMinute, startPeriod);
+    }
+ 
+    /**
+     * Calculates and returns the timestamp code for the given date and time.
+     * 
+     * @param date a LocalDate instance representing the date to be encoded
+     * @param hour an int representing the hour to be encoded
+     * @param minute an int representing the minute to be encoded
+     * @param period a String representing the period to be encoded
+     * @return a String representing the timestamp to be stored in an RDBMS
+     */
+    private Timestamp getTimestampCode(LocalDate date, int hour, int minute, String period) {
+        String timestampCode = date.getYear() + "-" + date.getMonthValue() + "-" + date.getDayOfMonth()
+                + " " + toTwelveHourTimeString(hour, minute, period);
+        return Timestamp.valueOf(timestampCode);
+    }
+
+    /**
+     * If the appointment variable is null, saves the new appointment to the database
+     * and creates a new instance of an Appointment, adding it to the appointments
+     * HashMap in the AppointmentDatabase Singleton instance; else, modifies the
+     * existing appointment in both the database and the AppointmentDatabase Singleton
+     * instance.
+     */
+    private void saveAppointmentInfo() 
+            throws InvalidAppointmentException, MissingInformationException {
+        HashMap<String, Object> data = getHashMapForAppointmentCreation();
+        
+        if(appointment == null) {
+            AppointmentDatabase.getInstance().createNewAppointmentInDb(data);
+        } else {
+            Customer newCustomer = 
+                    AppointmentDatabase.getInstance().getCustomerWithId
+                    ((Integer)data.get(Appointment.CUSTOMER_ID));
+            
+            if(!appointment.getCustomer().equals(newCustomer)) {
+                appointment.setCustomer(newCustomer); }
+            if(!appointment.getTitle().equals(data.get(Appointment.TITLE))) {
+                appointment.setTitle(((String)data.get(Appointment.TITLE))); }
+            if(!appointment.getDescription().equals(data.get(Appointment.DESCRIPTION))) {
+                appointment.setDescription(((String)data.get(Appointment.DESCRIPTION))); }
+            if(!appointment.getLocation().equals(data.get(Appointment.LOCATION))) {
+                appointment.setLocation(((String)data.get(Appointment.LOCATION))); }
+            if(!appointment.getContact().equals(data.get(Appointment.CONTACT))) {
+                appointment.setContact(((String)data.get(Appointment.CONTACT))); }
+            if(!appointment.getType().equals(data.get(Appointment.TYPE))) {
+                appointment.setType(((String)data.get(Appointment.TYPE))); }
+            if(!appointment.getURL().equals(data.get(Appointment.URL))) {
+                appointment.setURL(((String)data.get(Appointment.URL))); }
+            if(!appointment.getStart().equals(data.get(Appointment.START_TIME))) {
+                appointment.setStart(((Timestamp)data.get(Appointment.START_TIME))); }
+            if(!appointment.getEnd().equals(data.get(Appointment.END_TIME))) {
+                appointment.setEnd(((Timestamp)data.get(Appointment.END_TIME))); }
+        }
+    }
+        
+    /**
+     * 
+     * @param hour an int representing the hour
+     * @param minute an int representing the minute
+     * @param period a String representing the period (AM or PM)
+     * @return a String representing the time in 12-hour format.
+     */
+    private String toTwelveHourTimeString(int hour, int minute, String period) {
+        if(hour == 12) { hour -= 12; }
+        hour = period.equals("AM") ? hour : (hour + 12);
+        String adjHour = (hour < 10 ? "0" + hour : "" + hour);
+        
+        String adjMinute = (minute < 10 ? "0" + minute : "" + minute);
+        return adjHour + ":" + adjMinute + ":00";
+    }
     
+    /**
+     * Validates the appointment based on the following conditions:<br>
+     * <ul>
+     * <li>Appointment must fall on a business day, not Saturday or Sunday.</li>
+     * <li>Appointment must start and end within office hours (set as 8 a.m.
+     * and 5 p.m. using class constants.</li>
+     * <li>Appointment's end time must be set after the start time.</li>
+     * <li>Appointment must not overlap with any other appointment.</li>
+     * </ul>
+     * If any of these conditions are violated, the method throws an InvalidAppointmentException
+     * with a corresponding message informing the user which requirement has
+     * been violated.
+     * 
+     * @throws Controllers.ASAddAppointmentFXMLController.InvalidAppointmentException 
+     */
     private void validateAppointment() throws InvalidAppointmentException {
         String message = "";
         
@@ -448,6 +541,15 @@ public class ASAddAppointmentFXMLController implements Initializable {
         }
     }
     
+    /**
+     * Verifies that all required information for the Appointment instance has
+     * been completed by the user. The required information includes the customer
+     * name, the title, the location, the description, the date, and the start
+     * and end times.
+     * 
+     * @throws MissingInformationException The exception includes information about
+     * which required element is missing.
+     */
     private void verifyFormIsComplete() throws MissingInformationException {
         String missingInformation = "";
         if(customerComboBox.getValue() == null) {
@@ -485,24 +587,5 @@ public class ASAddAppointmentFXMLController implements Initializable {
         if(!missingInformation.equals("")) {
             throw new MissingInformationException(missingInformation);
         }
-    }
-        
-    /**
-     * Adjusts the local time code String to Greenwich Mean Time assuming that the
-     * user has entered their appointment time using their own local time zone.
-     * 
-     * @param localTimeCode a String instance representing the data that the user entered
-     * @return a Timestamp with the date and time adjusted to Greenwich Mean Time.
-     */
-    private Timestamp getGMTTimestampFromLocalTimestamp (Timestamp localTime) {
-        ZonedDateTime zdtLocal = ZonedDateTime.of(localTime.toLocalDateTime(), ZoneId.systemDefault());
-        ZonedDateTime zdt = zdtLocal.withZoneSameInstant(ZoneId.of("GMT"));
-        return Timestamp.valueOf(zdt.toLocalDateTime());
-    }
-    
-    private Timestamp getLocalTimestampFromGMTTimestamp(Timestamp gmtTime) {
-        ZonedDateTime zdt = ZonedDateTime.of(gmtTime.toLocalDateTime(), ZoneId.of("GMT"));
-        ZonedDateTime zdtLocal = zdt.withZoneSameInstant(ZoneId.systemDefault());
-        return Timestamp.valueOf(zdtLocal.toLocalDateTime());
     }
 }

@@ -34,10 +34,16 @@ import javafx.util.Callback;
  */
 public class ASReportMenuFXMLController implements Initializable {
     
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     @FXML ComboBox<ASForm> reportsComboBox;
     @FXML Button viewReportButton;
     @FXML Button backButton;
-    
+
+    /***************************************************************************
+     * INITIALIZERS
+     **************************************************************************/
     /**
      * Initializes the controller class.
      */
@@ -45,7 +51,14 @@ public class ASReportMenuFXMLController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         setReportsComboBoxItems();
     }    
-    
+
+    /***************************************************************************
+     * PRIVATE HELPER METHODS - INITIALIZATION
+     **************************************************************************/
+    /**
+     * Sets up the comboBox that allows the user to select the type of report
+     * to run.
+     */
     private void setReportsComboBoxItems() {
         ObservableList<ASForm> forms = 
                 FXCollections.observableArrayList(ASForm.TYPE_SUMMARY,
@@ -74,7 +87,16 @@ public class ASReportMenuFXMLController implements Initializable {
         reportsComboBox.setItems(sortedForms);
         reportsComboBox.getSelectionModel().select(0);
     }
-    
+
+    /***************************************************************************
+     * EVENT HANDLER
+     **************************************************************************/
+    /**
+     * Segues to a new scene, either the ASReportFXML if the user hit the "View
+     * Report" button or the ASScheduleFXML if the user hit the "Back" button.
+     * @param event
+     * @throws IOException 
+     */
     @FXML void segueToNewScene(ActionEvent event) throws IOException {
         String filename = "/Views/ASReportFXML.fxml";
         if(event.getSource().equals(backButton)) {

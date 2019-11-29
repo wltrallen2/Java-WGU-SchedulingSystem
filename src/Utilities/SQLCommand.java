@@ -7,19 +7,22 @@
 package Utilities;
 
 /**
- *
+ * An enum representing SQL Commands (which require no parameters to be passed)
+ * that can be used in SQL statements. The command()method returns the name of 
+ * the command plus an empty set of parentheses to be inserted directly into the
+ * SQL statement.
+ * 
+ * <ul>
+ * <li>NOW - NOW()</li>
+ * </ul>
+ * 
  * @author walterallen
  */
 public enum SQLCommand {
     NOW;
-    
-    private final String command;
-    SQLCommand() {
-        command = this.name() + "()";
-    }
-    
+            
     public String command() {
-        return command;
+        return this.name() + "()";
     }
         
 }

@@ -16,6 +16,10 @@ import java.util.HashMap;
  * @author walterallen
  */
 public class Customer {
+    
+    /***************************************************************************
+     * CONSTANTS
+     **************************************************************************/
     public static final String TABLE_NAME = "customer";
     public static final String CUSTOMER_ID = "customerId";
     public static final String CUSTOMER_NAME = "customerName";
@@ -25,7 +29,10 @@ public class Customer {
     public static final String CREATED_BY = "createdBy";
     public static final String LAST_UPDATE = "lastUpdate";
     public static final String LAST_UPDATE_BY = "lastUpdateBy";
-    
+ 
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     private int customerId;
     private String customerName;
     private Address address;
@@ -34,7 +41,11 @@ public class Customer {
     private String createdBy;
     private Timestamp lastUpdate;
     private String lastUpdateBy;
-    
+
+    /***************************************************************************
+     * CONSTRUCTOR
+     **************************************************************************/
+
     /**
      * Creates an instance of a Customer object based on the uCertify database
      * model.
@@ -66,7 +77,11 @@ public class Customer {
         this.lastUpdate = updateDate;
         this.lastUpdateBy = updatorName;
     }
-    
+
+    /***************************************************************************
+     * OVERRIDDEN METHODS
+     **************************************************************************/
+
     /**
      * @return a String representation of the Customer object containing the
      * String value of the customerName property.

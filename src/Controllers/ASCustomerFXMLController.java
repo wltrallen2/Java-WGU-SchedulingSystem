@@ -38,6 +38,9 @@ import javafx.stage.Stage;
  */
 public class ASCustomerFXMLController implements Initializable {
     
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     @FXML private Button returnButton;
     @FXML private Button addCustomerButton;
     @FXML private Button modifyCustomerButton;
@@ -48,6 +51,9 @@ public class ASCustomerFXMLController implements Initializable {
     @FXML private TableColumn<Customer, Address> customerLocationColumn;
     @FXML private TableColumn<Customer, Address> customerPhoneColumn;
     
+    /***************************************************************************
+     * INITIALIZER
+     **************************************************************************/
     /**
      * Initializes the controller class.
      * 
@@ -59,6 +65,28 @@ public class ASCustomerFXMLController implements Initializable {
         loadDataAndPopulateTable();
     }    
     
+    /***************************************************************************
+     * EVENT HANDLERS
+     **************************************************************************/
+
+    /**
+     * Deletes the customer that is currently selected in the customerTable
+     * from both the AppointmentDatabase customers HashMap and from the customer
+     * table in the database itself. Note that by calling the removeCustomer method
+     * from the AppointmentDatabase Singleton instance, unused addresses, cities,
+     * and countries will also be deleted from the database.
+     * 
+     * @param event the ActionEvent that triggers this method, in this case, the
+     * user clicking on the Delete Selected Customer button.
+     */
+    @FXML private void deleteCustomer(ActionEvent event) {
+        Customer customerToDelete = customerTable.getSelectionModel().getSelectedItem();
+        if(customerToDelete != null) {
+            AppointmentDatabase.getInstance().removeCustomer(customerToDelete);
+            loadDataAndPopulateTable();
+        }
+    }
+      
     /**
      * Segues to a new fxml scene based on the source of the ActionEvent that has
      * been triggered. The method will currently segue to an instance of the
@@ -99,29 +127,15 @@ public class ASCustomerFXMLController implements Initializable {
             stage.show();
         }
     }
-    
-    /**
-     * Deletes the customer that is currently selected in the customerTable
-     * from both the AppointmentDatabase customers HashMap and from the customer
-     * table in the database itself. Note that by calling the removeCustomer method
-     * from the AppointmentDatabase Singleton instance, unused addresses, cities,
-     * and countries will also be deleted from the database.
-     * 
-     * @param event the ActionEvent that triggers this method, in this case, the
-     * user clicking on the Delete Selected Customer button.
-     */
-    @FXML private void deleteCustomer(ActionEvent event) {
-        Customer customerToDelete = customerTable.getSelectionModel().getSelectedItem();
-        if(customerToDelete != null) {
-            AppointmentDatabase.getInstance().removeCustomer(customerToDelete);
-            loadDataAndPopulateTable();
-        }
-    }
-  
+
+    /***************************************************************************
+     * PRIVATE HELPER METHODS - INITIALIZATION
+     **************************************************************************/
+
     /**
      * Loads the data for the customer table, sets the cellValueFactorys that
      * will populate the table, and sets the items for the table as the list
-     * of customers in the AppointmentDatabase Singelton instance.
+     * of customers in the AppointmentDatabase Singleton instance.
      */
     private void loadDataAndPopulateTable() {
         customerNameColumn.setCellValueFactory(

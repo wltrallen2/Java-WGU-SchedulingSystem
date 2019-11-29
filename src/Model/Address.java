@@ -15,6 +15,9 @@ import java.util.HashMap;
  * @author walterallen
  */
 public class Address {
+    /***************************************************************************
+     * CONSTANTS
+     **************************************************************************/
     public static final String TABLE_NAME = "address";
     public static final String ADDRESS_ID = "addressId";
     public static final String ADDRESS_LINE1 = "address";
@@ -27,6 +30,9 @@ public class Address {
     public static final String LAST_UPDATE = "lastUpdate";
     public static final String LAST_UPDATE_BY = "lastUpdateBy";
     
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     private int addressId;
     private String address;
     private String address2;
@@ -37,7 +43,11 @@ public class Address {
     private String createdBy;
     private Timestamp lastUpdate;
     private String lastUpdateBy;
-    
+
+    /***************************************************************************
+     * CONSTRUCTOR
+     **************************************************************************/
+
     /**
      * Creates an instance of an Address object based on the uCertify database
      * model.
@@ -74,7 +84,12 @@ public class Address {
         this.lastUpdate = updateDate;
         this.lastUpdateBy = updatorName;
     }
-        
+
+    
+    /***************************************************************************
+     * OVERRIDDEN METHODS
+     **************************************************************************/
+
     @Override
     public String toString() {
         return address + "\n" + address2 + "\n" + city.getCityName() + ", "

@@ -8,7 +8,6 @@ package Model;
 
 import Utilities.DBQuery;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 
@@ -17,6 +16,9 @@ import java.util.HashMap;
  * @author walterallen
  */
 public class Appointment {
+    /***************************************************************************
+     * CONSTANTS
+     **************************************************************************/
     public static final String TABLE_NAME = "appointment";
     public static final String APPOINTMENT_ID = "appointmentId";
     public static final String CUSTOMER_ID = "customerId";
@@ -34,6 +36,9 @@ public class Appointment {
     public static final String LAST_UPDATE = "lastUpdate";
     public static final String LAST_UPDATE_BY = "lastUpdateBy";
     
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     private int appointmentId;
     private Customer customer;
     private int userId;
@@ -49,7 +54,11 @@ public class Appointment {
     private String createdBy;
     private Timestamp lastUpdate;
     private String lastUpdateBy;
-    
+
+    /***************************************************************************
+     * CONSTRUCTOR
+     **************************************************************************/
+
     /**
      * Creates an instance of an Appointment object based on the UCertify database
      * model.
@@ -94,7 +103,11 @@ public class Appointment {
         this.lastUpdate = lastUpdate;
         this.lastUpdateBy = lastUpdateBy;
     }
-    
+ 
+    /***************************************************************************
+     * OVERRIDDEN METHODS
+     **************************************************************************/
+
     /**
      * A String representation of the appointment that includes the following
      * information: title, customer name, description, location, start, and end times.
@@ -107,16 +120,7 @@ public class Appointment {
                 + description + "\n"
                 + location + ", " + start + " - " + end;
     }
-    
-    /**
-     * Sets the lastUpdate property to the current date and time, and sets the
-     * lastUpdatedBy property to the current user name.
-     */
-    private void setUpdatedValues() {
-        setLastUpdate(Timestamp.valueOf(LocalDateTime.now()));
-        setLastUpdateBy(AppointmentDatabase.getInstance().getUserName());
-    }
-
+ 
     /***************************************************************************
      * SETTERS
      **************************************************************************/
@@ -497,5 +501,18 @@ public class Appointment {
         }
         
         throw new Exception("Error reading from array created from ResultSet row.");
+    }
+    
+    /***************************************************************************
+     * PRIVATE HELPER METHODS
+     **************************************************************************/
+
+    /**
+     * Sets the lastUpdate property to the current date and time, and sets the
+     * lastUpdatedBy property to the current user name.
+     */
+    private void setUpdatedValues() {
+        setLastUpdate(Timestamp.valueOf(LocalDateTime.now()));
+        setLastUpdateBy(AppointmentDatabase.getInstance().getUserName());
     }
 }

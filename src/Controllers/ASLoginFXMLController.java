@@ -14,9 +14,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
@@ -37,12 +39,23 @@ import javafx.stage.Stage;
  */
 public class ASLoginFXMLController implements Initializable {
     
+    /***************************************************************************
+     * PRIVATE INNER CLASS, EXCEPTION SUBCLASS
+     **************************************************************************/
+
+    /**
+     * A subclass of the Exception class that denotes that a user has attempted
+     * to log in using invalid user credentials (wrong username and/or password).
+     */
     private class InvalidUserException extends Exception {
         public InvalidUserException(String message) {
             super(message);
         }
     }
     
+    /***************************************************************************
+     * PARAMETERS
+     **************************************************************************/
     @FXML private Label errorLabel;
     
     @FXML private TextField userNameTextField;
@@ -50,6 +63,10 @@ public class ASLoginFXMLController implements Initializable {
     
     @FXML private Button button;
     
+    /***************************************************************************
+     * INITIALIZER
+     **************************************************************************/
+ 
     /**
      * Initializes the controller class. Sets the errorLabel to invisible,
      * hiding the error message from the user.
@@ -58,7 +75,11 @@ public class ASLoginFXMLController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         errorLabel.visibleProperty().set(false);
     }    
-        
+
+    /***************************************************************************
+     * EVENT HANDLERS
+     **************************************************************************/
+
     /**
      * nextButtonPressed checks the user name and password provided in the 
      * appropriate text fields against the MySQL connected database. If the
@@ -89,52 +110,24 @@ public class ASLoginFXMLController implements Initializable {
             passwordField.setText("");
         }
     }
-    
-    private void verifyUser(String username, String password) throws InvalidUserException {
-        if(DBQuery.fetchUserId(username, password) == -1) {
-            logUser(username, false);
-            throw new InvalidUserException("Invalid username/password combination.");
-        }
-        
-        logUser(username, true);
-    }
-    
-    private void logUser(String username, boolean success) {
-        String logLine = StringUtil.rpad(username, 30, '-');
-        logLine += StringUtil.lpad(Timestamp.valueOf(LocalDateTime.now()).toString(), 25, '-');
-        logLine += (success ? "  SUCCESS" : "  FAIL");
-        
-        File file = new File("log.txt");
-        
-        try {
-            boolean newFile = false;
-            if(!file.exists()) {
-                file.createNewFile();
-                newFile = true;
-            }
-            
-            BufferedWriter out = new BufferedWriter(new FileWriter(file, true));
-            if(newFile) {
-                out.append("USER-TIMESTAMP LOG");
-                out.newLine();
-                
-                out.append(StringUtil.rpad("", 55, '-'));
-                out.newLine();
-                out.newLine();
-                
-                out.append(StringUtil.rpad("USERNAME", 30, ' '));
-                out.append(StringUtil.lpad("TIMESTAMP", 25, ' '));
-                out.newLine();
-                out.newLine();
-            }
-            
-            out.append(logLine);
-            out.newLine();
-            
-            out.close();
-        } catch(IOException ex) {
-            System.out.println("IOException in ASLoginFXMLController.logUser(String, boolean).");
-            System.out.println(ex);
+
+    /***************************************************************************
+     * PRIVATE HELPER METHODS
+     **************************************************************************/
+
+    /**
+     * Checks the current country for the user, and changes the error message
+     * to French if the user is in France, or to English otherwise.
+     */
+    private void checkErrorLabelLanguage() {
+        Locale currentLocale = Locale.getDefault();
+        if(currentLocale.getCountry().equals("FR")) {
+            errorLabel.setText("Le nom d'utilisateur et le mot de passe que " +
+                                "vous avez entrés ne correspondent pas à nos " +
+                                "enregistrements. Veuillez réessayer.");
+        } else {
+            errorLabel.setText("The user name and password you entered does " +
+                    "not match our records. Please try again.");
         }
     }
 
@@ -153,20 +146,88 @@ public class ASLoginFXMLController implements Initializable {
         stage.setScene(scene);
         stage.show();
     }
-        
+
     /**
-     * Checks the current country for the user, and changes the error message
-     * to French if the user is in France, or to English otherwise.
+     * Logs a login attempt by any user, whether a success or a failure. The log
+     * line will include the username, the timestamp, and SUCCESS or FAIL. The log
+     * is located in the program's home directory.
+     * 
+     * @param username a String representing the user name.
+     * @param success a boolean value, true if the login was successful, false if not.
      */
-    private void checkErrorLabelLanguage() {
-        Locale currentLocale = Locale.getDefault();
-        if(currentLocale.getCountry().equals("FR")) {
-            errorLabel.setText("Le nom d'utilisateur et le mot de passe que " +
-                                "vous avez entrés ne correspondent pas à nos " +
-                                "enregistrements. Veuillez réessayer.");
-        } else {
-            errorLabel.setText("The user name and password you entered does " +
-                    "not match our records. Please try again.");
+    private void logUser(String username, boolean success) {
+        final int FIRST_COL_PAD = 30;
+        final int SECOND_COL_PAD = 25;
+        
+        String logLine = StringUtil.rpad(username, FIRST_COL_PAD, '-');
+        logLine += StringUtil.lpad(Timestamp.valueOf(LocalDateTime.now()).toString(), SECOND_COL_PAD, '-');
+        logLine += (success ? "  SUCCESS" : "  FAIL");
+        
+        File file = new File("log.txt");
+        
+        try {
+            boolean newFile = false;
+            if(!file.exists()) {
+                file.createNewFile();
+                newFile = true;
+            }
+            
+            BufferedWriter out = new BufferedWriter(new FileWriter(file, true));
+            if(newFile) {
+                out.append("USER-TIMESTAMP LOG");
+                out.newLine();
+                
+                out.append(StringUtil.rpad("", FIRST_COL_PAD + SECOND_COL_PAD, '-'));
+                out.newLine();
+                out.newLine();
+                
+                out.append(StringUtil.rpad("USERNAME", FIRST_COL_PAD, ' '));
+                out.append(StringUtil.lpad("TIMESTAMP", SECOND_COL_PAD, ' '));
+                out.newLine();
+                out.newLine();
+            }
+            
+            out.append(logLine);
+            out.newLine();
+            
+            out.close();
+        } catch(IOException ex) {
+            System.out.println("IOException in ASLoginFXMLController.logUser(String, boolean).");
+            System.out.println(ex);
+        }
+    }
+
+    /**
+     * Verifies the user's attempt to log in by determining whether or not they
+     * have used a valid username/password combination. The method also logs
+     * the log in attempt to the log file (located in the AllenSchedulingSystem
+     * folder.
+     * 
+     * @param username a String representing the user name
+     * @param password a String representing the user's password
+     * @throws Controllers.ASLoginFXMLController.InvalidUserException 
+     */
+    private void verifyUser(String username, String password) throws InvalidUserException {
+        String[] colNames = { "*" };
+        String tableName = "user";
+        HashMap<String, Object> filter = new HashMap<>();
+        filter.put("username", username);
+        filter.put("password", password);
+        
+        ResultSet rs = DBQuery.getResultSetForPreparedStatement(colNames, tableName, filter);
+        try {
+            if(rs.next()) {
+                logUser(username, true);
+            } else {
+                logUser(username, false);
+                throw new InvalidUserException("Invalid username/password combination.");
+            }
+        } catch(SQLException ex) {
+            System.out.println("SQL Exception in ASLoginFXMLController.verifyUser.");
+            System.out.println(ex);
+        } catch(NullPointerException ex) {
+            System.out.println("Null Pointer Exception in ASLoginFXMLController.verifyUser.");
+            System.out.println(ex);
         }
     }
 }
